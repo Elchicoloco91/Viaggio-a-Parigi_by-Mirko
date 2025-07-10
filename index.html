@@ -1,0 +1,1539 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="UTF-8">
+  <title>Untitled</title>
+  
+
+</head>
+<body>
+<!-- partial:index.partial.html -->
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Itinerario Interattivo: Parigi 2-14 Agosto 2025</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome for heart icon and weather icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #fdfaf6;
+            color: #3a3a3a;
+        }
+        .nav-button {
+            transition: all 0.3s ease;
+        }
+        .nav-button.active {
+            background-color: #4a5568;
+            color: #fdfaf6;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+        }
+        .content-card {
+            background-color: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+        }
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease-in-out;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 400px;
+            max-height: 50vh;
+        }
+        .day-timeline::before {
+            content: '';
+            position: absolute;
+            left: 1.25rem;
+            top: 1rem;
+            bottom: 1rem;
+            width: 2px;
+            background-color: #cbd5e1;
+        }
+        .timeline-point {
+            position: absolute;
+            left: calc(1.25rem - 0.4rem);
+            width: 0.8rem;
+            height: 0.8rem;
+            border-radius: 9999px;
+            background-color: #4a5568;
+            border: 2px solid #fdfaf6;
+        }
+        .price-category {
+            font-weight: bold;
+            color: #2b6cb0; /* A shade of blue for price */
+        }
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 1000; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: auto;
+            padding: 20px;
+            border-radius: 0.75rem;
+            width: 90%;
+            max-width: 700px;
+            box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
+            animation-name: animatetop;
+            animation-duration: 0.4s
+        }
+        @keyframes animatetop {
+            from {top: -300px; opacity: 0}
+            to {top: 0; opacity: 1}
+        }
+        .close-button {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .close-button:hover,
+        .close-button:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .favorite-icon {
+            cursor: pointer;
+            color: #ccc;
+            transition: color 0.2s ease;
+        }
+        .favorite-icon.favorited {
+            color: #ef4444; /* Red for favorited */
+        }
+        /* Styles for sticky nav on scroll */
+        .nav-scrolled {
+            padding-top: 0.5rem;
+            padding-bottom: 0.5rem;
+            font-size: 0.875rem; /* text-sm */
+        }
+        .nav-scrolled .nav-button {
+            padding: 0.375rem 0.75rem; /* py-1.5 px-3 */
+            font-size: 0.875rem; /* text-sm */
+        }
+        .weather-widget {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            background-color: #e0f2f7; /* Light blue */
+            color: #007991; /* Darker blue */
+            font-weight: 600;
+            font-size: 0.875rem;
+            margin-top: 1rem;
+            width: fit-content;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .weather-icon {
+            font-size: 1.5rem;
+        }
+        /* Activity card summary style adjustment (further reduced) */
+        .activity-card-summary {
+            padding: 0.5rem; /* Further reduced padding */
+            font-size: 0.8rem; /* Even smaller font */
+        }
+        .activity-card-summary h4 {
+            font-size: 1rem; /* Even smaller title */
+        }
+        .activity-card-summary img {
+            height: 100px; /* Even smaller image height */
+        }
+        .activity-card-summary .text-sm { /* For description and cost/time */
+            font-size: 0.75rem; /* text-xs */
+        }
+        .activity-card-summary .text-xs { /* For segment distance */
+            font-size: 0.65rem; /* Even smaller text */
+        }
+        .activity-card-summary .form-checkbox {
+            height: 0.75rem; /* Smaller checkbox */
+            width: 0.75rem;
+        }
+        .activity-card-summary label {
+            font-size: 0.75rem; /* Smaller label for checkbox */
+        }
+        .activity-card-summary .favorite-icon {
+            font-size: 1.1rem; /* Smaller heart icon */
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <header class="bg-white shadow-sm">
+        <div class="container mx-auto px-4 py-6 text-center">
+            <h1 class="text-4xl font-bold text-gray-800">Parigi e Oltre</h1>
+            <p class="text-lg text-gray-600 mt-1">Il Tuo Itinerario Interattivo: 2 - 14 Agosto 2025</p>
+            <div id="weather-widget" class="weather-widget">
+                <!-- Weather info will be dynamically updated here -->
+                <i class="fas fa-cloud-sun weather-icon"></i>
+                <span>Meteo a Parigi (Agosto): Generalmente soleggiato, brevi rovesci.</span>
+            </div>
+        </div>
+    </header>
+
+    <nav id="main-nav" class="py-4 sticky top-0 bg-fdfaf6/80 backdrop-blur-sm z-10 shadow-md transition-all duration-300">
+        <div class="container mx-auto px-4">
+            <div class="mb-4">
+                <input type="text" id="search-input" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="Cerca punto di interesse...">
+                <div id="search-results" class="mt-2 text-left"></div>
+            </div>
+            <div id="days-nav" class="flex flex-wrap justify-center gap-2 mb-4">
+                <!-- Day buttons will go here -->
+            </div>
+            <div class="flex flex-wrap justify-center gap-2 mt-4">
+                <button id="restaurants-nav-button" class="px-3 py-1.5 text-sm font-bold text-white bg-indigo-600 rounded-full hover:bg-indigo-700 shadow-lg transition-all duration-300">
+                    Ristoranti
+                </button>
+                <button id="favorites-nav-button" class="px-3 py-1.5 text-sm font-bold text-white bg-pink-600 rounded-full hover:bg-pink-700 shadow-lg transition-all duration-300">
+                    Preferiti
+                </button>
+                <button id="budget-nav-button" class="px-3 py-1.5 text-sm font-bold text-white bg-teal-600 rounded-full hover:bg-teal-700 shadow-lg transition-all duration-300">
+                    Budget
+                </button>
+                <button id="flight-nav-button" class="px-3 py-1.5 text-sm font-bold text-white bg-orange-600 rounded-full hover:bg-orange-700 shadow-lg transition-all duration-300">
+                    Volo
+                </button>
+                <button id="accommodation-nav-button" class="px-3 py-1.5 text-sm font-bold text-white bg-purple-600 rounded-full hover:bg-purple-700 shadow-lg transition-all duration-300">
+                    Alloggio
+                </button>
+                <button id="local-tips-nav-button" class="px-3 py-1.5 text-sm font-bold text-white bg-blue-600 rounded-full hover:bg-blue-700 shadow-lg transition-all duration-300">
+                    Consigli Locali
+                </button>
+                <button id="ask-ai-nav-button" class="px-3 py-1.5 text-sm font-bold text-white bg-gray-600 rounded-full hover:bg-gray-700 shadow-lg transition-all duration-300">
+                    Chiedi all'AI
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container mx-auto p-4 md:p-8">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div id="itinerary-content" class="lg:col-span-2">
+                <!-- Content for itinerary days will be loaded here -->
+            </div>
+            <div id="restaurant-content" class="lg:col-span-2 hidden">
+                <!-- Content for restaurants will be loaded here -->
+            </div>
+            <div id="favorites-content" class="lg:col-span-2 hidden">
+                <!-- Content for favorites will be loaded here -->
+            </div>
+            <div id="budget-content" class="lg:col-span-2 hidden">
+                <!-- Content for budget simulator will be loaded here -->
+            </div>
+            <div id="flight-content" class="lg:col-span-2 hidden">
+                <!-- Content for flight details will be loaded here -->
+            </div>
+            <div id="accommodation-content" class="lg:col-span-2 hidden">
+                <!-- Content for accommodation details will be loaded here -->
+            </div>
+            <div id="local-tips-content" class="lg:col-span-2 hidden">
+                <!-- Content for local tips will be loaded here -->
+            </div>
+            <div id="ask-ai-content" class="lg:col-span-2 hidden">
+                <!-- Content for Ask AI will be loaded here -->
+            </div>
+            
+            <aside class="space-y-8">
+                <div class="content-card p-6">
+                    <h3 class="text-2xl font-bold mb-4 text-gray-700">Riepilogo Costi Attrazioni</h3>
+                    <p class="text-sm text-gray-600 mb-4">Panoramica dei costi di ingresso stimati per le principali attrazioni (escluso Museum Pass). I costi sono indicativi per un adulto.</p>
+                    <div class="chart-container">
+                        <canvas id="costsChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="content-card p-6">
+                    <h3 class="text-2xl font-bold mb-4 text-gray-700">Consigli Pratici</h3>
+                    <div id="practical-tips" class="space-y-2">
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </main>
+
+    <footer class="bg-gray-800 text-white mt-12">
+        <div class="container mx-auto p-6 text-center">
+            <p>&copy; 2025 Itinerario di Viaggio Personalizzato. Buon viaggio!</p>
+        </div>
+    </footer>
+
+    <!-- The Modal Structure -->
+    <div id="activityModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h3 id="modal-title" class="text-3xl font-bold mb-2 text-gray-800"></h3>
+            <img id="modal-image" src="" alt="Immagine attività" class="w-full h-64 object-cover rounded-lg my-3 shadow-md">
+            <p id="modal-description" class="text-gray-700 mt-2"></p>
+            <p id="modal-cost-time" class="text-sm font-medium text-blue-600 mt-2"></p>
+            <div class="mt-4 flex flex-wrap gap-2 items-center">
+                <a id="modal-ticket-link" href="#" target="_blank" class="px-3 py-1 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors duration-200 text-sm hidden">Acquista Biglietto</a>
+                <div class="flex items-center">
+                    <input type="checkbox" id="modal-paid-checkbox" class="form-checkbox h-4 w-4 text-green-600">
+                    <label for="modal-paid-checkbox" class="ml-2 text-gray-700 text-sm">Pagato</label>
+                </div>
+                <button id="modal-curiosity-btn" class="px-3 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors duration-200 text-sm">✨ Curiosità</button>
+            </div>
+            <div id="modal-insight-output" class="mt-2 p-2 bg-blue-50 border border-blue-200 rounded-md text-sm text-gray-700 hidden"></div>
+            <a id="modal-wikipedia-link" href="#" target="_blank" class="inline-block mt-4 text-blue-600 hover:underline text-sm">Maggiori informazioni su Wikipedia</a>
+        </div>
+    </div>
+
+    <script>
+        const itineraryData = [
+            {
+                day: 1,
+                date: "Venerdì 2 Ago",
+                title: "Arrivo e Primo Assaggio di Parigi",
+                activities: [
+                    { time: "Mattina", icon: "✈️", title: "Viaggio e Check-in", description: "Arrivo a Parigi da Roma. Dopo l'atterraggio all'aeroporto Charles de Gaulle (CDG) o Orly (ORY), prendi il RER o un taxi per raggiungere il tuo alloggio nel cuore della città. Una volta effettuato il check-in e sistemati i bagagli, concediti un momento per rilassarti e pranzare leggermente, magari con una tipica baguette farcita o una quiche in una boulangerie locale per un primo assaggio della cucina parigina, prima di iniziare la tua avventura. Questo primo momento ti permetterà di immergerti nell'atmosfera vibrante della capitale francese.", cost: "Variabile", visitTime: "2-3 ore", imageUrl: "https://placehold.co/400x250/a8dadc/ffffff?text=Arrivo+a+Parigi", ticketLink: null, paid: false, wikipediaSearch: "Aeroporti di Parigi" },
+                    { time: "Pomeriggio", icon: "🏛️", title: "Quartiere Le Marais & Place des Vosges", description: "Nel pomeriggio, immergiti nell'atmosfera storica e affascinante del quartiere Le Marais. Questo antico quartiere ebraico e aristocratico è un labirinto di stradine acciottolate, eleganti palazzi privati (hôtels particuliers) e boutique alla moda. Passeggia nella splendida Place des Vosges, la piazza più antica di Parigi, con la sua architettura armoniosa in mattoni rossi e i suoi portici eleganti, un vero gioiello di tranquillità. Potrai anche visitare la Maison de Victor Hugo, situata proprio nella piazza, dove il celebre scrittore visse e lavorò, respirando la storia letteraria di Parigi.", cost: "Gratuito", visitTime: "2-3 ore", imageUrl: "https://placehold.co/400x250/457b9d/ffffff?text=Place+des+Vosges", ticketLink: null, paid: false, wikipediaSearch: "Le Marais, Place des Vosges, Maison de Victor Hugo" },
+                    { time: "Sera", icon: "🎨", title: "Museo Picasso e Cena", description: "Concludi la giornata con una visita al Museo Picasso, ospitato nel magnifico Hôtel Salé, un palazzo del XVII secolo nel cuore del Marais. Il museo custodisce una delle più grandi e complete collezioni al mondo delle opere di Pablo Picasso, coprendo tutte le sue fasi creative, dai primi disegni alle ultime sculture. Dopo l'immersione nell'arte, goditi una cena in uno dei tanti ristoranti caratteristici del Marais. Il quartiere è famoso per la sua vivace scena culinaria, dove potrai assaggiare di tutto, dal delizioso falafel (un must del Marais) alla cucina francese più tradizionale in un accogliente bistrot.", cost: "€16", visitTime: "1.5-2.5 ore", imageUrl: "https://placehold.co/400x250/1d3557/ffffff?text=Museo+Picasso", ticketLink: "https://www.museepicassoparis.fr/en/tickets", paid: false, wikipediaSearch: "Museo Picasso (Parigi)" }
+                ]
+            },
+            {
+                day: 2,
+                date: "Sabato 3 Ago",
+                title: "Grandeur Imperiale",
+                activities: [
+                    { time: "Mattina", icon: "🏰", title: "Reggia di Versailles", description: "Parti presto con la RER C (linea gialla) dalla stazione più vicina per raggiungere Versailles. Dedica l'intera mattinata alla visita della sontuosa Reggia, un capolavoro dell'architettura barocca francese e simbolo del potere assoluto dei re di Francia, in particolare di Luigi XIV. Non perderti gli Appartamenti di Stato, con la celebre Sala degli Specchi che riflette la luce dei giardini, e la Cappella Reale, un vero gioiello architettonico. Prenota i biglietti online in anticipo per evitare lunghe code.", cost: "Incluso in PMP", visitTime: "3-4 ore (solo palazzo)", imageUrl: "https://placehold.co/400x250/a8dadc/ffffff?text=Reggia+di+Versailles", ticketLink: "https://en.chateauversailles.fr/plan-your-visit/tickets-prices", paid: false, wikipediaSearch: "Reggia di Versailles" },
+                    { time: "Pomeriggio", icon: "🌳", title: "Giardini di Versailles e Trianon", description: "Dopo aver esplorato il palazzo, immergiti nei vasti e magnifici Giardini di Versailles, progettati da André Le Nôtre. Ammira le loro fontane elaborate, le sculture classiche e i boschetti nascosti, che si estendono per chilometri. Prosegui la visita verso la Tenuta del Trianon, un'area più intima e personale voluta da Maria Antonietta. Qui troverai il Grand Trianon, il Petit Trianon e l'incantevole Hameau de la Reine, il villaggio rustico dove la regina amava ritirarsi, offrendo un affascinante contrasto con la sfarzosità della Reggia.", cost: "Incluso in PMP", visitTime: "2-4 ore (giardini+trianon)", imageUrl: "https://placehold.co/400x250/457b9d/ffffff?text=Giardini+Versailles", ticketLink: "https://en.chateauversailles.fr/plan-your-visit/tickets-prices", paid: false, wikipediaSearch: "Giardini di Versailles, Grand Trianon, Petit Trianon, Hameau de la Reine" },
+                    { time: "Sera", icon: "🍽️", title: "Rientro e Cena Rilassante", description: "Rientra a Parigi nel tardo pomeriggio, probabilmente stanco ma arricchito da una giornata così intensa di storia e bellezza. Dopo aver riposto le energie, concediti una cena rilassante in un quartiere tranquillo, lontano dal trambusto turistico. Potresti scegliere un piccolo bistrot nel tuo quartiere o esplorare una zona meno conosciuta per un'esperienza più autentica, gustando piatti semplici ma deliziosi della cucina francese.", cost: "Variabile", visitTime: "2 ore", imageUrl: "https://placehold.co/400x250/1d3557/ffffff?text=Cena+Rilassante", ticketLink: null, paid: false, wikipediaSearch: null }
+                ]
+            },
+            {
+                day: 3,
+                date: "Domenica 4 Ago",
+                title: "Capolavori e Viste Panoramiche",
+                activities: [
+                    { time: "Mattina", icon: "🖼️", title: "Museo del Louvre", description: "Dedica l'intera mattinata al Museo del Louvre, uno dei più grandi e famosi musei del mondo, ospitato nell'ex palazzo reale. È un vero labirinto di capolavori che spaziano dall'antichità alle opere del XIX secolo. Per ottimizzare la visita, ti consiglio di concentrarti su alcune sezioni di tuo interesse, come le antichità egizie, le sculture greche e romane (con la Venere di Milo) o, naturalmente, la celeberrima Gioconda di Leonardo da Vinci. Si consiglia vivamente di prenotare la fascia oraria online con largo anticipo per garantire l'accesso ed evitare lunghe code.", cost: "Incluso in PMP", visitTime: "3-4 ore", imageUrl: "https://placehold.co/400x250/a8dadc/ffffff?text=Museo+del+Louvre", ticketLink: "https://www.louvre.fr/en/tickets", paid: false, wikipediaSearch: "Museo del Louvre" },
+                    { time: "Pomeriggio", icon: "🌳", title: "Giardini delle Tuileries e Place de la Concorde", description: "Dopo l'immersione nell'arte al Louvre, concediti una passeggiata rilassante attraverso i Giardini delle Tuileries, un'oasi verde e ben curata che collega il Louvre a Place de la Concorde. È il luogo perfetto per un momento di riposo, ammirando le statue, le fontane e l'architettura circostante. Prosegui fino a Place de la Concorde, una delle piazze più grandi e storiche di Parigi, con il suo imponente obelisco egizio e le sue fontane maestose. Da qui potrai ammirare una splendida prospettiva sugli Champs-Élysées e l'Arco di Trionfo.", cost: "Gratuito", visitTime: "1.5-2.5 ore", imageUrl: "https://placehold.co/400x250/457b9d/ffffff?text=Giardini+Tuileries", ticketLink: null, paid: false, wikipediaSearch: "Giardino delle Tuileries, Place de la Concorde" },
+                    { time: "Sera", icon: "🗼", title: "Torre Eiffel al Tramonto", description: "Concludi la giornata con un'esperienza indimenticabile: la salita sulla Torre Eiffel al tramonto. Ammira la città che si illumina gradualmente, trasformandosi in uno spettacolo mozzafiato con le luci scintillanti che si accendono ogni ora. Scegli tra la salita a piedi (più economica e con meno coda, ma faticosa) o in ascensore. Ricorda che la prenotazione online con largo anticipo (anche mesi prima) è assolutamente essenziale per assicurarti l'ingresso all'orario desiderato, specialmente per il tramonto.", cost: "€28.30", visitTime: "2-3 ore", imageUrl: "https://placehold.co/400x250/1d3557/ffffff?text=Torre+Eiffel+Tramonto", ticketLink: "https://www.toureiffel.paris/en/tickets-rates", paid: false, wikipediaSearch: "Torre Eiffel" }
+                ]
+            },
+            {
+                day: 4,
+                date: "Lunedì 5 Ago",
+                title: "Impressionismo e Gotico",
+                activities: [
+                    { time: "Mattina", icon: "�", title: "Musée d'Orsay", description: "Inizia la giornata al Musée d'Orsay, un'ex stazione ferroviaria Beaux-Arts trasformata in un magnifico museo, famoso per la sua eccezionale collezione di arte impressionista e post-impressionista. Qui potrai ammirare opere iconiche di maestri come Claude Monet, Pierre-Auguste Renoir, Edgar Degas, Vincent van Gogh e molti altri, esposte in un ambiente unico e suggestivo, con la grande orologio che offre una vista spettacolare sulla Senna. Il museo è meno dispersivo del Louvre, ma altrettanto ricco di capolavori.", cost: "Incluso in PMP", visitTime: "2-3 ore", imageUrl: "https://placehold.co/400x250/a8dadc/ffffff?text=Musee+d'Orsay", ticketLink: "https://www.musee-orsay.fr/en/buy-ticket", paid: false, wikipediaSearch: "Museo d'Orsay" },
+                    { time: "Pomeriggio", icon: "⛪", title: "Sainte-Chapelle e Conciergerie", description: "Prosegui verso l'Île de la Cité, il cuore storico di Parigi, per visitare la Sainte-Chapelle. Questa cappella reale gotica è una gemma architettonica, celebre in tutto il mondo per le sue quindici vetrate mozzafiato che narrano scene bibliche, creando un'esplosione di colori e luce. Nelle vicinanze, esplora la Conciergerie, l'antica prigione rivoluzionaria che ospitò Maria Antonietta prima della sua esecuzione. È un luogo carico di storia e dramma, che ti farà rivivere i momenti salienti della Rivoluzione Francese.", cost: "Incluso in PMP", visitTime: "1.5-2.5 ore", imageUrl: "https://placehold.co/400x250/457b9d/ffffff?text=Sainte-Chapelle", ticketLink: "https://www.sainte-chapelle.fr/en/Prepare-your-visit/Tickets-and-prices", paid: false, wikipediaSearch: "Sainte-Chapelle, Conciergerie" },
+                    { time: "Sera", icon: "🌃", title: "Notre-Dame e Île de la Cité", description: "Ammira la maestosità della Cattedrale di Notre-Dame, che, dopo i tragici eventi dell'incendio, è stata riaperta e continua a essere un simbolo di resilienza e bellezza gotica. Anche se non è possibile visitarla completamente all'interno, potrai apprezzarne l'imponenza dall'esterno. Concludi la serata con una passeggiata lungo la Senna, esplorando l'atmosfera suggestiva dell'Île de la Cité e i suoi ponti illuminati. Potresti anche considerare un giro in bateau-mouche per ammirare i monumenti parigini dal fiume, un'esperienza magica al calar della sera.", cost: "Gratuito", visitTime: "1-2 ore", imageUrl: "https://placehold.co/400x250/1d3557/ffffff?text=Notre-Dame+Sera", ticketLink: null, paid: false, wikipediaSearch: "Cattedrale di Notre-Dame" }
+                ]
+            },
+            {
+                day: 5,
+                date: "Martedì 6 Ago",
+                title: "Montmartre e il Sottosuolo",
+                activities: [
+                    { time: "Mattina", icon: "🏘️", title: "Quartiere di Montmartre e Sacré-Cœur", description: "Inizia la giornata esplorando il pittoresco quartiere di Montmartre, un tempo rifugio di artisti come Picasso e Van Gogh, con le sue stradine tortuose e l'atmosfera bohémien. Visita la Basilica del Sacré-Cœur, che domina la città dalla sua collina, offrendo una vista panoramica mozzafiato su Parigi. Passeggia per Place du Tertre, dove gli artisti espongono e creano le loro opere, e scopri angoli nascosti come il Muro dei Ti Amo (Mur des Je t'aime), un'opera d'arte unica dedicata all'amore in tutte le lingue del mondo.", cost: "Basilica gratuita, Cupola €6", visitTime: "2-3 ore", imageUrl: "https://placehold.co/400x250/a8dadc/ffffff?text=Montmartre+Sacre-Coeur", ticketLink: "https://www.sacre-coeur-montmartre.com/english/visit-the-basilica/tickets-and-opening-hours/", paid: false, wikipediaSearch: "Montmartre, Basilica del Sacro Cuore (Parigi)" },
+                    { time: "Pomeriggio", icon: "💀", title: "Catacombe di Parigi", description: "Per un'esperienza unica e suggestiva, scendi nel sottosuolo di Parigi per visitare le Catacombe. Questa immensa rete di tunnel e cave sotterranee ospita i resti di milioni di parigini, trasferiti qui nel XVIII secolo per decongestionare i cimiteri della città. È un viaggio affascinante e un po' macabro nella storia e nell'urbanistica di Parigi, che ti porterà a riflettere sulla vita e sulla morte. La prenotazione online è obbligatoria e fondamentale per assicurarti l'ingresso, poiché i biglietti sul posto sono rari o inesistenti e le code possono essere estenuanti.", cost: "€29-€31", visitTime: "1.5-2 ore", imageUrl: "https://placehold.co/400x250/457b9d/ffffff?text=Catacombe+di+Parigi", ticketLink: "https://www.catacombes.paris.fr/en/prepare-your-visit/tickets-and-prices", paid: false, wikipediaSearch: "Catacombe di Parigi" },
+                    { time: "Sera", icon: "🍷", title: "Cena e Relax", description: "Dopo l'intensa e forse un po' inquietante esperienza delle Catacombe, concediti una cena tranquilla in un bistrot locale. Scegli un posto accogliente e intimo per rilassarti e riflettere sulle scoperte della giornata. Potresti optare per un quartiere meno turistico per assaporare l'autentica atmosfera parigina, magari gustando un buon vino francese e piatti tipici, o semplicemente godendoti una serata di tranquillità dopo le emozioni del sottosuolo.", cost: "Variabile", visitTime: "2 ore", imageUrl: "https://placehold.co/400x250/1d3557/ffffff?text=Cena+e+Relax", ticketLink: null, paid: false, wikipediaSearch: null }
+                ]
+            },
+            {
+                day: 6,
+                date: "Mercoledì 7 Ago",
+                title: "Arte Moderna e Cultura",
+                activities: [
+                    { time: "Mattina", icon: "🏢", title: "Centre Pompidou", description: "Visita il Centre Pompidou, un'icona architettonica audace e controversa, famosa per la sua struttura 'a vista' con tubi e condotti colorati all'esterno. Ospita il Musée National d'Art Moderne, con una vasta collezione di arte moderna e contemporanea. Qui potrai ammirare opere di artisti del calibro di Picasso, Matisse, Kandinsky, Miró e molti altri, esplorando le diverse correnti artistiche del XX e XXI secolo. Dal tetto, si gode anche una splendida vista su Parigi. Verifica gli orari di apertura a causa dei lavori di ristrutturazione previsti per i prossimi anni.", cost: "Incluso in PMP", visitTime: "2-3 ore", imageUrl: "https://placehold.co/400x250/a8dadc/ffffff?text=Centre+Pompidou", ticketLink: "https://www.centrepompidou.fr/en/visit/tickets-and-prices", paid: false, wikipediaSearch: "Centre Pompidou" },
+                    { time: "Pomeriggio", icon: "🛍️", title: "Les Halles e Rue Montorgueil", description: "Esplora il vivace quartiere di Les Halles, un tempo sede del mercato centrale di Parigi (il 'ventre di Parigi'), ora un moderno centro commerciale e culturale sotterraneo con giardini sovrastanti. Passeggia lungo la pedonale Rue Montorgueil, una delle strade più affascinanti e animate di Parigi, famosa per i suoi negozi di alimentari tradizionali, panetterie profumate, fiorai, ristoranti e caffè. È il luogo ideale per assaporare l'autentica vita parigina, fare acquisti gourmet o semplicemente godersi l'atmosfera vivace.", cost: "Gratuito", visitTime: "1.5-2.5 ore", imageUrl: "https://placehold.co/400x250/457b9d/ffffff?text=Rue+Montorgueil", ticketLink: null, paid: false, wikipediaSearch: "Les Halles, Rue Montorgueil" },
+                    { time: "Sera", icon: "🎭", title: "Palais Garnier (Opéra)", description: "Concludi la giornata con una visita al sontuoso Palais Garnier, il teatro dell'opera di Parigi, un capolavoro architettonico del XIX secolo in stile Beaux-Arts. Ammira i suoi interni lussuosi, la scalinata monumentale, i foyer dorati e il famoso soffitto dipinto da Marc Chagall. Anche se non assisterai a uno spettacolo, la visita degli interni è un'esperienza indimenticabile. Cena nell'elegante quartiere dell'Opéra, che offre una vasta scelta di ristoranti raffinati e brasserie storiche, immergendoti nell'atmosfera sofisticata della zona.", cost: "€16.50+", visitTime: "1.5-2.5 ore", imageUrl: "https://placehold.co/400x250/1d3557/ffffff?text=Palais+Garnier", ticketLink: "https://www.operadeparis.fr/en/visits/palais-garnier/ticket-office", paid: false, wikipediaSearch: "Opéra Garnier" }
+                ]
+            },
+            {
+                day: 7,
+                date: "Giovedì 8 Ago",
+                title: "Escursione: Giverny o Chantilly",
+                activities: [
+                    { time: "Intera Giornata", icon: "🚂", title: "Opzione A: Giverny", description: "Prendi il treno da Gare Saint-Lazare per Vernon, e da lì un bus navetta o un taxi per Giverny. Immergiti nel mondo di Claude Monet visitando la sua incantevole casa e i magnifici giardini che hanno ispirato le sue celebri serie di dipinti, in particolare le Ninfee. Ammira il famoso ponte giapponese, il laghetto delle ninfee e i giardini fioriti che cambiano colore con le stagioni. È un'oasi di pace e colore, ideale per gli amanti dell'arte e della natura, che ti farà sentire come se fossi entrato in un quadro impressionista.", cost: "Treno + Ingresso €12.50", visitTime: "6-8 ore (inclusi spostamenti)", imageUrl: "https://placehold.co/400x250/a8dadc/ffffff?text=Giverny+Monet", ticketLink: "https://fondation-monet.com/en/tickets/", paid: false, wikipediaSearch: "Giverny" },
+                    { time: "Intera Giornata", icon: "🏰", title: "Opzione B: Chantilly", description: "In alternativa, puoi raggiungere Chantilly in treno (da Gare du Nord) per visitare il suo sontuoso castello, un vero gioiello del patrimonio francese. Il castello ospita il Musée Condé, con una straordinaria collezione di dipinti antichi (seconda solo al Louvre per ricchezza di opere dei maestri), e le Grandi Scuderie, considerate le più belle d'Europa, sede del Museo del Cavallo. Qui potresti anche assistere a spettacoli equestri. Un'esperienza che combina arte, storia e natura in un ambiente regale, circondato da magnifici giardini e un vasto parco.", cost: "Treno + Ingresso", visitTime: "6-8 ore (inclusi spostamenti)", imageUrl: "https://placehold.co/400x250/457b9d/ffffff?text=Chateau+Chantilly", ticketLink: "https://domaine-de-chantilly.com/en/plan-your-visit/tickets-prices/", paid: false, wikipediaSearch: "Castello di Chantilly" },
+                    { time: "Sera", icon: "🏙️", title: "Rientro a Parigi", description: "Rientra a Parigi nel tardo pomeriggio o in serata, a seconda dell'escursione scelta. Dopo una giornata trascorsa fuori città, potrai goderti una cena tranquilla in un ristorante a tua scelta, magari provando un quartiere diverso o tornando in uno che ti è particolarmente piaciuto. Oppure, se preferisci, opta per una serata più rilassante in hotel per riposare dopo il viaggio e le scoperte della giornata.", cost: "Variabile", visitTime: "2 ore", imageUrl: "https://placehold.co/400x250/1d3557/ffffff?text=Cena+e+Relax", ticketLink: null, paid: false, wikipediaSearch: "Parigi" }
+                ]
+            },
+            {
+                day: 8,
+                date: "Venerdì 9 Ago",
+                title: "Relax e Parchi Urbani",
+                activities: [
+                    { time: "Mattina", icon: "🌳", title: "Parc de la Villette", description: "Dedica la mattinata all'esplorazione del Parc de la Villette, uno dei più grandi parchi urbani di Parigi, noto per il suo design moderno e le sue numerose attrazioni culturali e scientifiche. Qui troverai la Cité des Sciences et de l'Industrie (un museo interattivo della scienza), la Philharmonie de Paris e numerosi giardini tematici e spazi aperti. È il luogo ideale per una passeggiata rilassante, per scoprire architetture contemporanee e per un po' di svago all'aria aperta, lontano dal trambusto del centro città.", cost: "Gratuito", visitTime: "2-3 ore", imageUrl: "https://placehold.co/400x250/a8dadc/ffffff?text=Parc+de+la+Villette", ticketLink: null, paid: false, wikipediaSearch: "Parc de la Villette" },
+                    { time: "Pomeriggio", icon: "🛶", title: "Canal Saint-Martin", description: "Nel pomeriggio, passeggia lungo le rive del pittoresco Canal Saint-Martin, un'area che offre un'atmosfera completamente diversa rispetto ai grandi boulevard. Ammira le sue chiuse e i suoi ponti di ferro, e osserva le barche passare. Questo quartiere è noto per la sua atmosfera bohémien, i caffè alla moda, i bar accoglienti e le boutique indipendenti. È un luogo perfetto per un pomeriggio rilassante, per fare una pausa in uno dei tanti locali lungo il canale o per un picnic sulle sue sponde, lontano dal trambusto turistico.", cost: "Gratuito", visitTime: "1.5-2.5 ore", imageUrl: "https://placehold.co/400x250/457b9d/ffffff?text=Canal+Saint-Martin", ticketLink: null, paid: false, wikipediaSearch: "Canal Saint-Martin" },
+                    { time: "Sera", icon: "🍴", title: "Cena sul Canale", description: "Concludi la giornata con una cena in uno dei tanti ristoranti o bistrot che si affacciano sul Canal Saint-Martin. Il quartiere offre una vasta scelta di cucine, dall'etnica alla tradizionale francese, spesso con un'atmosfera più rilassata e informale rispetto al centro. Goditi l'atmosfera unica del quartiere al calar della sera, magari con un aperitivo prima di cena, assaporando la cucina locale con vista sull'acqua e osservando la vita parigina che si svolge lentamente lungo il canale.", cost: "Variabile", visitTime: "2 ore", imageUrl: "https://placehold.co/400x250/1d3557/ffffff?text=Cena+e+Relax", ticketLink: null, paid: false, wikipediaSearch: null }
+                ]
+            },
+            {
+                day: 9,
+                date: "Sabato 10 Ago",
+                title: "Scultura, Ninfee e Memoria",
+                activities: [
+                    { time: "Mattina", icon: "🗿", title: "Musée Rodin", description: "Visita il Musée Rodin, ospitato nell'Hôtel Biron, l'ex dimora e studio dell'artista Auguste Rodin. Qui potrai ammirare le sue opere più celebri, come 'Il Pensatore', 'Il Bacio' e 'Le Porte dell'Inferno', esposte sia all'interno del museo che nel suggestivo giardino delle sculture. Il giardino è un'oasi di pace e bellezza, dove le opere di Rodin si fondono armoniosamente con la natura circostante. È un'esperienza artistica e contemplativa che ti permetterà di apprezzare a fondo il genio di uno dei più grandi scultori moderni.", cost: "Incluso in PMP", visitTime: "1.5-2.5 ore", imageUrl: "https://placehold.co/400x250/a8dadc/ffffff?text=Musee+Rodin", ticketLink: "https://www.musee-rodin.fr/en/prepare-your-visit/tickets-and-prices", paid: false, wikipediaSearch: "Museo Rodin" },
+                    { time: "Pomeriggio", icon: "🌸", title: "Musée de l'Orangerie", description: "Prosegui verso il Musée de l'Orangerie, situato nei Giardini delle Tuileries, un museo imperdibile per gli amanti dell'Impressionismo. Questo museo è famoso in tutto il mondo per le sue monumentali Ninfee di Claude Monet, otto grandi pannelli murali esposti in due sale ovali appositamente progettate per creare un'esperienza immersiva e contemplativa. È un capolavoro di luce e colore che ti avvolgerà completamente, permettendoti di immergerti nella visione artistica di Monet. Il museo ospita anche altre opere di artisti impressionisti e post-impressionisti.", cost: "Incluso in PMP", visitTime: "1.5-2 ore", imageUrl: "https://placehold.co/400x250/457b9d/ffffff?text=Musee+de+l'Orangerie", ticketLink: "https://www.musee-orangerie.fr/en/prepare-your-visit/tickets-and-prices", paid: false, wikipediaSearch: "Musée de l'Orangerie" },
+                    { time: "Sera", icon: "🪦", title: "Cimitero di Père Lachaise", description: "Per un'esperienza diversa e ricca di storia, visita il Cimitero di Père Lachaise, il più grande cimitero di Parigi e uno dei più famosi al mondo. È un vero e proprio museo a cielo aperto, con elaborate sculture funerarie, mausolei imponenti e un'atmosfera di pace e riflessione. È il luogo di riposo di numerose celebrità e figure storiche, tra cui Jim Morrison, Oscar Wilde, Frédéric Chopin, Edith Piaf, Molière e Honoré de Balzac. Puoi passeggiare tra i viali alberati e scoprire le tombe di personaggi illustri, rendendo la visita un mix unico di storia, arte e natura.", cost: "Gratuito", visitTime: "2-3 ore", imageUrl: "https://placehold.co/400x250/1d3557/ffffff?text=Cimitero+Pere+Lachaise", ticketLink: null, paid: false, wikipediaSearch: "Cimitero di Père Lachaise" }
+                ]
+            },
+            {
+                day: 10,
+                date: "Domenica 11 Ago",
+                title: "Escursione: Mont Saint-Michel",
+                activities: [
+                    { time: "Intera Giornata", icon: "🏰", title: "Mont Saint-Michel", description: "Preparati per una lunga ma imperdibile escursione a Mont Saint-Michel, la 'meraviglia dell'Occidente' e un sito Patrimonio dell'Umanità UNESCO. Questa isola tidale, con la sua spettacolare abbazia medievale che si erge maestosa sulla roccia, è uno dei luoghi più iconici di Francia. Potrai esplorare l'abbazia, le stradine tortuose del borgo medievale e goderti le viste mozzafiato sulla baia circostante, famosa per le sue maree. Si consiglia vivamente di partecipare a un tour organizzato da Parigi per comodità, data la distanza (circa 3,5-4 ore di viaggio) e la complessità logistica del raggiungere il sito autonomamente.", cost: "Tour da ~$150 / Ingresso €16", visitTime: "8-10 ore (inclusi spostamenti)", imageUrl: "https://placehold.co/400x250/a8dadc/ffffff?text=Mont+Saint-Michel", ticketLink: "https://www.abbaye-mont-saint-michel.fr/en/Prepare-your-visit/Tickets-and-prices", paid: false, wikipediaSearch: "Mont Saint-Michel" },
+                    { time: "Sera", icon: "😴", title: "Rientro a Parigi", description: "Rientra a Parigi in tarda serata dopo una giornata molto intensa e ricca di scoperte a Mont Saint-Michel. Dopo un lungo viaggio, prevedi una cena leggera e un meritato riposo per ricaricare le energie. Potresti optare per un pasto veloce o un semplice spuntino in hotel, o in un locale vicino, per concludere la giornata in tranquillità prima di prepararti per le prossime avventure parigine.", cost: "N/A", visitTime: "N/A", imageUrl: "https://placehold.co/400x250/1d3557/ffffff?text=Cena+e+Relax", ticketLink: null, paid: false, wikipediaSearch: "Parigi" }
+                ]
+            },
+            {
+                day: 11,
+                date: "Lunedì 12 Ago",
+                title: "Escursione: Nantes",
+                activities: [
+                    { time: "Intera Giornata", icon: "🐘", title: "Nantes e Les Machines de l'île", description: "Prendi il treno ad alta velocità (TGV) da Parigi per Nantes, una città dinamica e innovativa nella regione della Loira. La principale attrazione è 'Les Machines de l'île', un progetto artistico unico ispirato ai mondi di Jules Verne e alla storia industriale della città. Qui potrai ammirare e interagire con macchine animate giganti, tra cui il famoso Grande Elefante, su cui potrai anche fare un giro! Potrai anche visitare il Castello dei Duchi di Bretagna, un'imponente fortezza nel cuore della città che racconta la storia della Bretagna. Questa escursione offre una prospettiva diversa sulla cultura e l'innovazione francese, con un mix di storia, arte e ingegneria fantastica.", cost: "Treno da ~€35 + Ingressi", visitTime: "8-10 ore (inclusi spostamenti)", imageUrl: "https://placehold.co/400x250/a8dadc/ffffff?text=Nantes+Machines", ticketLink: "https://www.lesmachines-nantes.fr/en/tickets-and-prices/", paid: false, wikipediaSearch: "Nantes, Les Machines de l'île" },
+                    { time: "Sera", icon: "🚆", title: "Rientro a Parigi", description: "Rientra a Parigi in serata dopo aver esplorato le meraviglie di Nantes. Questa escursione, sebbene lunga, offre una prospettiva affascinante sulla cultura e l'innovazione francese, con un mix di storia, arte e creatività contemporanea. Una volta tornato in città, potrai decidere se cenare fuori o optare per una serata più tranquilla per riposare e prepararti all'ultimo giorno di avventura parigina.", cost: "N/A", visitTime: "N/A", imageUrl: "https://placehold.co/400x250/1d3557/ffffff?text=Rientro+a+Parigi", ticketLink: null, paid: false, wikipediaSearch: "Parigi" }
+                ]
+            },
+            {
+                day: 12,
+                date: "Martedì 13 Ago",
+                title: "Ultime Impressioni e Shopping",
+                activities: [
+                    { time: "Mattina", icon: "🏆", title: "Arco di Trionfo e Champs-Élysées", description: "Inizia la giornata salendo sull'Arco di Trionfo, un monumento iconico che offre una vista panoramica spettacolare sugli Champs-Élysées e sulle dodici strade che si irradiano da Place de l'Étoile (ora Place Charles de Gaulle). Ammira la tomba del Milite Ignoto e la fiamma eterna. Successivamente, passeggia lungo il famoso viale degli Champs-Élysées, uno dei più prestigiosi e iconici al mondo. Potresti dedicare del tempo allo shopping nelle boutique di lusso, visitare i grandi magazzini, o semplicemente ammirare l'atmosfera vivace e le vetrine scintillanti, godendoti l'energia di questa celebre arteria parigina.", cost: "Incluso in PMP", visitTime: "2-3 ore", imageUrl: "https://placehold.co/400x250/a8dadc/ffffff?text=Arco+di+Trionfo", ticketLink: "https://www.paris-arc-de-triomphe.fr/en/Prepare-your-visit/Tickets-and-prices", paid: false, wikipediaSearch: "Arco di Trionfo, Champs-Élysées" },
+                    { time: "Pomeriggio", icon: "🎓", title: "Quartiere Latino e Panthéon", description: "Esplora il vivace Quartiere Latino, il cuore intellettuale e studentesco di Parigi, famoso per la Sorbona, le sue librerie storiche (come Shakespeare and Company), i caffè vivaci e le stradine piene di fascino. Passeggia tra i bouquinistes lungo la Senna. Visita il Panthéon, un imponente mausoleo neoclassico che custodisce le spoglie di illustri personaggi francesi che hanno segnato la storia del paese, come Voltaire, Jean-Jacques Rousseau, Victor Hugo, Émile Zola, Marie Curie e Alexandre Dumas. È un luogo di grande significato storico e culturale, con un'architettura maestosa e una cripta affascinante.", cost: "Incluso in PMP", visitTime: "2-3 ore", imageUrl: "https://placehold.co/400x250/457b9d/ffffff?text=Quartiere+Latino+Pantheon", ticketLink: "https://www.paris-pantheon.fr/en/Prepare-your-visit/Tickets-and-prices", paid: false, wikipediaSearch: "Quartiere Latino, Panthéon (Parigi)" },
+                    { time: "Sera", icon: "🥂", title: "Cena d'Addio", description: "Concludi il tuo viaggio a Parigi con una cena d'addio speciale in un ristorante a tua scelta. Questa è l'occasione perfetta per provare un piatto della cucina francese che non hai ancora assaggiato, o per tornare in un locale che ti è particolarmente piaciuto durante il soggiorno. Scegli un'atmosfera che ti sia gradita, che sia un bistrot intimo, una brasserie vivace o un ristorante più elegante. Goditi un'ultima serata parigina memorabile, brindando ai ricordi creati e alla bellezza di questa città indimenticabile.", cost: "Variabile", visitTime: "2 ore", imageUrl: "https://placehold.co/400x250/1d3557/ffffff?text=Cena+d'Addio", ticketLink: null, paid: false, wikipediaSearch: null }
+                ]
+            },
+            {
+                day: 13,
+                date: "Mercoledì 14 Ago",
+                title: "Partenza",
+                activities: [
+                    { time: "Mattina", icon: "🛫", title: "Volo di Ritorno", description: "Trasferimento in aeroporto (Charles de Gaulle o Orly) per il volo di ritorno a Roma, con partenza alle 8:00 del mattino. Assicurati di partire con il giusto anticipo per le procedure di check-in e sicurezza, tenendo conto del traffico mattutino. Lascia Parigi con il cuore pieno di meravigliosi ricordi, le foto e le esperienze indimenticabili che hai vissuto in questa magnifica città.", cost: "N/A", visitTime: "N/A", imageUrl: "https://placehold.co/400x250/a8dadc/ffffff?text=Volo+di+Ritorno", ticketLink: null, paid: false, wikipediaSearch: "Aeroporto di Parigi-Charles de Gaulle, Aeroporto di Parigi-Orly" }
+                ]
+            }
+        ];
+
+        const practicalTipsData = [
+            { title: "Paris Museum Pass (PMP)", content: "Fortemente raccomandato per ottimizzare tempi e costi. La formula da 6 giorni (circa €69) copre Louvre, Orsay, Versailles, Pompidou, Arco di Trionfo, Sainte-Chapelle e molto altro. Garantisce accesso prioritario 'salta-fila' in molte attrazioni, un vantaggio inestimabile in alta stagione." },
+            { title: "Prenotazioni Obbligatorie", content: "<strong>Torre Eiffel:</strong> Prenotare online con mesi di anticipo, specialmente per la sera. <strong>Catacombe:</strong> Prenotazione online essenziale, i biglietti sul posto sono rari o inesistenti. <strong>Louvre:</strong> Anche con il PMP o ingresso gratuito, è necessario prenotare online una fascia oraria per garantire l'accesso." },
+            { title: "Trasporti", content: "Utilizzare la Metro per spostamenti rapidi in città e il RER (linea C per Versailles, B per aeroporti CDG/Orly) per le destinazioni suburbane. Considerare l'acquisto di carnet da 10 biglietti o pass giornalieri (Navigo Découverte) a seconda della frequenza degli spostamenti." },
+            { title: "Gestione Energia", content: "L'itinerario è intenso. Optare per pranzi veloci (panini da boulangerie, crêpes) per massimizzare il tempo di visita. Concedersi cene più lunghe e rilassanti la sera per ricaricarsi. Portare sempre con sé una bottiglia d'acqua, specialmente in agosto." }
+        ];
+
+        const restaurantData = [
+            { id: "le-comptoir-du-relais", name: "Le Comptoir du Relais", type: "Pranzo, Cena", priceCategory: "€€€", dishes: "Bistrot classico, terrine, piatti stagionali", description: "Un bistrot parigino molto popolare, noto per la sua cucina tradizionale francese e l'atmosfera vivace. Spesso affollato, ma ne vale la pena per la qualità." },
+            { id: "l-as-du-fallafel", name: "L'As du Fallafel", type: "Pranzo, Cena", priceCategory: "€", dishes: "Falafel", description: "Il re del falafel nel Marais. Perfetto per un pranzo veloce e delizioso a basso costo. Preparati alla coda!" },
+            { id: "holybelly-5", name: "Holybelly 5", type: "Colazione, Pranzo", priceCategory: "€€", dishes: "Pancakes, uova, colazioni all'americana", description: "Un locale alla moda per colazioni e brunch, famoso per i suoi piatti abbondanti e l'atmosfera accogliente. Ideale per iniziare la giornata con energia." },
+            { id: "septime", name: "Septime", type: "Cena", priceCategory: "€€€€", dishes: "Cucina contemporanea, menu degustazione", description: "Ristorante stellato Michelin con un approccio moderno alla cucina francese. Richiede prenotazione con mesi di anticipo." },
+            { id: "du-pain-et-des-idees", name: "Du Pain et des Idées", type: "Colazione, Pranzo", priceCategory: "€", dishes: "Pane, viennoiseries, escargots au chocolat", description: "Una delle migliori panetterie di Parigi, famosa per il suo pane artigianale e le specialità dolci. Perfetto per una colazione autentica o uno spuntino." },
+            { id: "bouillon-chartier", name: "Bouillon Chartier", type: "Pranzo, Cena", priceCategory: "€", dishes: "Piatti tradizionali francesi (bœuf bourguignon, steak frites)", description: "Un'istituzione parigina dal 1896, offre cucina francese classica a prezzi imbattibili in un ambiente storico e vivace. Un'esperienza da non perdere." },
+            { id: "frenchie", name: "Frenchie", type: "Cena", priceCategory: "€€€€", dishes: "Cucina moderna, ingredienti di stagione", description: "Un altro ristorante molto acclamato, con un'atmosfera più intima e piatti creativi. Difficile trovare posto, ma la qualità è eccezionale." },
+            { id: "big-mamma-group", name: "Big Mamma Group Restaurants (e.g., Pink Mamma, Popolare)", type: "Pranzo, Cena", priceCategory: "€€", dishes: "Pizza napoletana, pasta fresca, piatti italiani", description: "Una catena di ristoranti italiani con arredamenti spettacolari e cibo delizioso. Ottimi per una cena informale ma di qualità. Spesso non accettano prenotazioni." },
+            { id: "cafe-de-flore", name: "Café de Flore", type: "Colazione, Pranzo, Cena", priceCategory: "€€€", dishes: "Caffè, croissant, club sandwich, insalate", description: "Un caffè storico a Saint-Germain-des-Prés, frequentato da intellettuali e artisti. Ottimo per un caffè o un pasto leggero, ma i prezzi sono elevati per l'atmosfera." },
+            { id: "les-papilles", name: "Les Papilles", type: "Pranzo, Cena", priceCategory: "€€€", dishes: "Menu unico del giorno, cucina di mercato", description: "Un piccolo e accogliente bistrot che offre un menu fisso basato sui prodotti freschi del mercato. Ottima qualità e atmosfera autentica." },
+            { id: "la-jacobine", name: "La Jacobine", type: "Pranzo, Cena", priceCategory: "€€", dishes: "Cucina tradizionale francese, zuppa di cipolle, crêpes", description: "Nascosto in un passaggio, offre un'atmosfera accogliente e piatti francesi classici. Perfetto per una cena romantica o un pranzo tipico." },
+            { id: "breizh-cafe", name: "Breizh Café", type: "Pranzo, Cena", priceCategory: "€€", dishes: "Galettes (crêpes salate), crêpes dolci, sidro bretone", description: "Famoso per le sue autentiche galettes bretoni, sia salate che dolci. Ideale per un pasto leggero e gustoso." },
+            { id: "l-avant-comptoir-de-la-terre", name: "L'Avant Comptoir de la Terre", type: "Pranzo, Cena", priceCategory: "€€", dishes: "Tapas francesi, salumi, formaggi", description: "Un bar di tapas con un'ampia selezione di vini e piccoli piatti francesi. Perfetto per un aperitivo o una cena informale in piedi." },
+            { id: "le-relais-de-l-entrecote", name: "Le Relais de l'Entrecôte", type: "Pranzo, Cena", priceCategory: "€€€", dishes: "Bistecca con salsa segreta e patatine fritte", description: "Un concept unico: servono solo un piatto, una deliziosa entrecôte con una salsa segreta e patatine a volontà. Preparati alla coda, ma il servizio è rapido." },
+            { id: "chez-gladines", name: "Chez Gladines", type: "Pranzo, Cena", priceCategory: "€", dishes: "Cucina basca, piatti abbondanti, insalate", description: "Un locale informale e vivace che offre porzioni generose di cucina basca a prezzi accessibili. Ottimo per un pasto rustico e saporito." },
+            { id: "patisserie-du-chef", name: "Pâtisserie du Chef (es. Pierre Hermé, Ladurée)", type: "Colazione, Spuntino", priceCategory: "€€€", dishes: "Macarons, pasticceria fine", description: "Per un'esperienza dolce di alta classe, visita una delle famose pasticcerie. Perfetto per una colazione o un tè pomeridiano delizioso." },
+            { id: "marche-des-enfants-rouges", name: "Marché des Enfants Rouges", type: "Pranzo", priceCategory: "€€", dishes: "Cucina internazionale (giapponese, marocchina, italiana)", description: "Il mercato coperto più antico di Parigi, offre una vasta scelta di stand gastronomici. Ideale per un pranzo informale e vario, provando diverse cucine." },
+            { id: "le-train-bleu", name: "Le Train Bleu", type: "Pranzo, Cena", priceCategory: "€€€€", dishes: "Cucina francese classica, frutti di mare", description: "Un ristorante magnifico all'interno della Gare de Lyon, con interni sontuosi. Un'esperienza culinaria e visiva unica, ma molto costosa." },
+            { id: "au-pied-de-cochon", name: "Au Pied de Cochon", type: "Pranzo, Cena", priceCategory: "€€€", dishes: "Zuppa di cipolle, frutti di mare, piatti tradizionali", description: "Un'istituzione parigina aperta 24 ore su 24, famosa per la sua zuppa di cipolle e i piatti di maiale. Perfetto per un pasto a qualsiasi ora." },
+            { id: "le-bouillon-pigalle", name: "Le Bouillon Pigalle", type: "Pranzo, Cena", priceCategory: "€", dishes: "Cucina francese tradizionale a prezzi bassi", description: "Un altro 'bouillon' che offre piatti classici francesi a prezzi incredibilmente economici in un ambiente storico e vivace. Ottimo rapporto qualità-prezzo." },
+            { id: "cafe-kitsune", name: "Café Kitsuné", type: "Colazione, Spuntino", priceCategory: "€€", dishes: "Caffè speciali, matcha, dolci", description: "Un caffè alla moda con diverse sedi a Parigi, noto per il suo caffè di qualità e l'atmosfera chic. Perfetto per una pausa caffè." },
+            { id: "l-avenue", name: "L'Avenue", type: "Pranzo, Cena", priceCategory: "€€€€", dishes: "Cucina internazionale, piatti di lusso", description: "Un ristorante frequentato da celebrità, con una terrazza affacciata su Avenue Montaigne. Molto costoso, ma offre un'esperienza di lusso e people-watching." },
+            { id: "la-creperie-de-josselin", name: "La Crêperie de Josselin", type: "Pranzo, Cena", priceCategory: "€", dishes: "Crêpes e galettes bretoni", description: "Una crêperie autentica e popolare, con un'ampia varietà di crêpes salate (galettes) e dolci. Perfetto per un pasto veloce e gustoso." },
+            { id: "clamato", name: "Clamato", type: "Cena", priceCategory: "€€€", dishes: "Frutti di mare, piatti di pesce crudo", description: "Un ristorante di pesce fresco e frutti di mare, con un'atmosfera rilassata e informale. Non accettano prenotazioni, quindi preparati ad aspettare." },
+            { id: "maison-kayser", name: "Maison Kayser", type: "Colazione, Pranzo", priceCategory: "€€", dishes: "Pane, viennoiseries, panini, insalate", description: "Una panetteria-pasticceria con diverse sedi, offre prodotti da forno di alta qualità e opzioni per un pranzo leggero." },
+            { id: "le-jules-verne", name: "Le Jules Verne (Torre Eiffel)", type: "Cena", priceCategory: "€€€€", dishes: "Cucina francese gourmet", description: "Un ristorante stellato Michelin situato al secondo piano della Torre Eiffel. Offre un'esperienza culinaria indimenticabile con viste spettacolari, ma è estremamente costoso e richiede prenotazione con largo anticipo." },
+            { id: "ober-mamma", name: "Ober Mamma", type: "Pranzo, Cena", priceCategory: "€€", dishes: "Pizza napoletana, pasta, piatti italiani", description: "Parte del gruppo Big Mamma, offre un'atmosfera vivace e piatti italiani abbondanti. Ottimo per una cena divertente con amici." },
+            { id: "le-petit-chatelet", name: "Le Petit Châtelet", type: "Pranzo, Cena", priceCategory: "€€", dishes: "Cucina tradizionale francese, fondue", description: "Un piccolo ristorante accogliente vicino a Notre-Dame, famoso per la sua fondue e i piatti tradizionali francesi. Atmosfera autentica." },
+            { id: "l-ambroisie", name: "L'Ambroisie", type: "Cena", priceCategory: "€€€€", dishes: "Cucina francese classica, alta gastronomia", description: "Uno dei ristoranti più prestigiosi di Parigi, con tre stelle Michelin. Offre un'esperienza culinaria di lusso in un ambiente elegante. Estremamente costoso." },
+            { id: "carette", name: "Carette", type: "Colazione, Spuntino", priceCategory: "€€€", dishes: "Pasticceria, tè, cioccolata calda, club sandwich", description: "Un'elegante sala da tè con diverse sedi, famosa per la sua pasticceria e la cioccolata calda. Perfetto per una pausa chic." },
+            { id: "septime-la-cave", name: "Septime La Cave", type: "Aperitivo", priceCategory: "€€", dishes: "Vino naturale, piccoli piatti", description: "La cantina di Septime, offre una selezione di vini naturali e tapas. Ottimo per un aperitivo informale." },
+            { id: "chez-janou", name: "Chez Janou", type: "Pranzo, Cena", priceCategory: "€€", dishes: "Cucina provenzale, mousse al cioccolato a volontà", description: "Un bistrot provenzale molto vivace e popolare, famoso per la sua mousse al cioccolato a volontà. Atmosfera allegra e piatti saporiti." },
+            { id: "le-cinq", name: "Le Cinq (Four Seasons George V)", type: "Cena", priceCategory: "€€€€", dishes: "Cucina francese contemporanea, 3 stelle Michelin", description: "Un ristorante di lusso all'interno del Four Seasons, offre un'esperienza gastronomica eccezionale con un servizio impeccabile. Prezzi molto elevati." },
+            { id: "odette-l-auberge-urbaine", name: "Odette - L'Auberge Urbaine", type: "Pranzo, Cena", priceCategory: "€€€", dishes: "Cucina francese moderna, vista su Notre-Dame", description: "Situato in un hotel di lusso, offre piatti raffinati con una vista mozzafiato su Notre-Dame. Ideale per un'occasione speciale." },
+            { id: "le-bistrot-paul-bert", name: "Le Bistrot Paul Bert", type: "Pranzo, Cena", priceCategory: "€€€", dishes: "Bistrot classico, steak frites, soufflé al Grand Marnier", description: "Un bistrot tradizionale amato dai parigini, noto per la sua cucina classica e l'atmosfera autentica. Spesso affollato, si consiglia di prenotare." },
+            { id: "hardware-societe", name: "Hardware Société", type: "Colazione, Pranzo", priceCategory: "€€", dishes: "Brunch, caffè speciali, piatti australiani", description: "Un caffè con influenze australiane, famoso per il suo brunch e il caffè di alta qualità. Atmosfera rilassata e moderna." },
+            { id: "yam-tcha", name: "Yam'Tcha", type: "Cena", priceCategory: "€€€€", dishes: "Cucina fusion franco-cinese, tè abbinati", description: "Un ristorante stellato Michelin che offre un'esperienza culinaria unica, combinando sapori francesi e cinesi con abbinamenti di tè. Richiede prenotazione." },
+            { id: "l-arpege", name: "L'Arpège", type: "Cena", priceCategory: "€€€€", dishes: "Cucina vegetale gourmet, 3 stelle Michelin", description: "Famoso per la sua cucina incentrata sulle verdure, con prodotti freschissimi dal proprio orto. Un'esperienza gastronomica unica e molto costosa." },
+            { id: "le-chateaubriand", name: "Le Chateaubriand", type: "Cena", priceCategory: "€€€", dishes: "Cucina moderna, menu degustazione", description: "Un ristorante molto influente nella scena gastronomica parigina, con un menu degustazione a sorpresa. Atmosfera informale ma piatti di alta qualità." },
+            { id: "ellsworth", name: "Ellsworth", type: "Pranzo, Cena", priceCategory: "€€", dishes: "Piccoli piatti, cucina americana contemporanea", description: "Un ristorante con un'atmosfera rilassata e piatti creativi, spesso con influenze americane. Ottimo per condividere diversi assaggi." },
+            { id: "passy-trocadero", name: "Passy Trocadéro", type: "Pranzo, Cena", priceCategory: "€€", dishes: "Cucina francese, vista sulla Torre Eiffel", description: "Un ristorante con una splendida vista sulla Torre Eiffel, ideale per un pranzo o una cena con un panorama iconico. I prezzi sono leggermente più alti per la posizione." },
+            { id: "la-duree-champs-elysees", name: "La Durée (Champs-Élysées)", type: "Colazione, Spuntino", priceCategory: "€€€", dishes: "Macarons, pasticceria, tè", description: "La storica sala da tè e pasticceria, famosa in tutto il mondo per i suoi macarons. Perfetto per una pausa elegante sugli Champs-Élysées." },
+            { id: "le-mary-celeste", name: "Le Mary Celeste", type: "Cena, Aperitivo", priceCategory: "€€", dishes: "Ostriche, piccoli piatti, cocktail", description: "Un bar di ostriche e cocktail con un'atmosfera vivace. Ottimo per un aperitivo con frutti di mare freschi." },
+            { id: "le-vaudeville", name: "Le Vaudeville", type: "Pranzo, Cena", priceCategory: "€€", dishes: "Brasserie classica, frutti di mare", description: "Una brasserie tradizionale parigina con un'atmosfera vivace e piatti classici. Aperto fino a tardi, perfetto per un pasto dopo uno spettacolo." },
+            { id: "l-office", name: "L'Office", type: "Cena", priceCategory: "€€€", dishes: "Cucina francese moderna, prodotti di stagione", description: "Un piccolo ristorante con una cucina raffinata e un'atmosfera accogliente. Offre un menu degustazione con ingredienti di alta qualità." },
+            { id: "le-richer", name: "Le Richer", type: "Pranzo, Cena", priceCategory: "€€", dishes: "Bistrot moderno, piatti creativi", description: "Un bistrot moderno e informale, con una cucina creativa e un'atmosfera rilassata. Ottimo per un pranzo o una cena senza pretese." },
+            { id: "buvette", name: "Buvette", type: "Colazione, Pranzo", priceCategory: "€€", dishes: "Toast, uova, piatti semplici ma raffinati", description: "Un caffè-bistrot con un'atmosfera charming e piatti semplici ma ben eseguiti. Perfetto per colazione o un pranzo leggero." },
+            { id: "le-dauphin-tapas", name: "Le Dauphin (tapas bar)", type: "Cena", priceCategory: "€€€", dishes: "Tapas francesi, vino naturale", description: "Il bar di tapas di Le Chateaubriand, offre piccoli piatti creativi e una vasta selezione di vini naturali. Ideale per una serata informale." },
+            { id: "le-recamier", name: "Le Recamier", type: "Pranzo, Cena", priceCategory: "€€€", dishes: "Soufflé (dolci e salati)", description: "Un ristorante specializzato in soufflé, sia dolci che salati. Un'esperienza culinaria unica e deliziosa." },
+            { id: "chez-denise", name: "Chez Denise", type: "Pranzo, Cena", priceCategory: "€€", dishes: "Cucina tradizionale francese, porzioni abbondanti", description: "Un classico 'bouillon' parigino, noto per le sue porzioni generose e l'atmosfera autentica. Perfetto per un pasto abbondante e senza fronzoli." },
+            { id: "l-eclair-de-genie", name: "L'Éclair de Génie", type: "Spuntino", priceCategory: "€€", dishes: "Éclair gourmet", description: "Una pasticceria specializzata in éclair, con una vasta gamma di gusti creativi e sorprendenti. Perfetto per un dolce sfizioso." },
+            { id: "pizzeria-popolare", name: "Pizzeria Popolare", type: "Pranzo, Cena", priceCategory: "€", dishes: "Pizza napoletana, pasta", description: "Un altro locale del gruppo Big Mamma, offre pizze e pasta a prezzi molto convenienti in un ambiente vivace. Spesso con lunghe code." },
+            { id: "le-dome-du-marais", name: "Le Dôme du Marais", type: "Pranzo, Cena", priceCategory: "€€€", dishes: "Cucina francese, ambiente elegante sotto una cupola", description: "Un ristorante con un'atmosfera magnifica sotto una cupola di vetro, offre cucina francese raffinata. Ideale per un'occasione speciale." },
+            { id: "season", name: "Season", type: "Colazione, Pranzo", priceCategory: "€€", dishes: "Piatti sani, bowls, avocado toast", description: "Un locale alla moda con opzioni salutari e un'atmosfera luminosa. Perfetto per un brunch o un pranzo leggero e fresco." },
+            { id: "le-baratin", name: "Le Baratin", type: "Cena", priceCategory: "€€€", dishes: "Cucina bistronomica, vino naturale", description: "Un bistrot molto acclamato per la sua cucina creativa e l'ampia selezione di vini naturali. Atmosfera autentica e piatti deliziosi." },
+            { id: "fouquet-s", name: "Fouquet's", type: "Pranzo, Cena", priceCategory: "€€€€", dishes: "Cucina francese classica, ambiente di lusso", description: "Un ristorante storico sugli Champs-Élysées, frequentato da celebrità. Offre un'esperienza di lusso con piatti classici francesi. Molto costoso." },
+            { id: "marche-saint-germain", name: "Marché Saint-Germain", type: "Pranzo", priceCategory: "€€", dishes: "Varie cucine internazionali, prodotti freschi", description: "Un mercato coperto con diversi stand gastronomici, ideale per un pranzo informale e per assaggiare diverse specialità." },
+            { id: "l-ami-jean", name: "L'Ami Jean", type: "Cena", priceCategory: "€€€", dishes: "Cucina basca rivisitata, piatti rustici ma raffinati", description: "Un bistrot vivace e rumoroso, famoso per la sua cucina basca rivisitata e le porzioni generose. Un'esperienza culinaria energica." },
+            { id: "le-floreal", name: "Le Floréal", type: "Colazione, Pranzo, Cena", priceCategory: "€€", dishes: "Caffè, piatti da bistrot, cocktail", description: "Un caffè-bar-ristorante con un'atmosfera rilassata e un'ampia offerta per tutto il giorno. Ottimo per una pausa o un pasto informale." },
+            { id: "le-servan", name: "Le Servan", type: "Pranzo, Cena", priceCategory: "€€€", dishes: "Cucina moderna, influenze asiatiche", description: "Un bistrot moderno con una cucina raffinata e influenze asiatiche. Offre un menu creativo e ingredienti di stagione." },
+            { id: "le-bouillon-republique", name: "Le Bouillon République", type: "Pranzo, Cena", priceCategory: "€", dishes: "Cucina francese tradizionale a prezzi bassi", description: "Un altro 'bouillon' che segue la tradizione di offrire piatti classici francesi a prezzi popolari. Ideale per un pasto economico e autentico." },
+            { id: "cedric-grolet-opera", name: "Cédric Grolet Opéra", type: "Spuntino", priceCategory: "€€€€", dishes: "Pasticceria d'autore, sculture di frutta", description: "La pasticceria del famoso chef Cédric Grolet, nota per le sue creazioni artistiche e i dolci a forma di frutta. Estremamente costoso e spesso con lunghe code." },
+            { id: "le-dauphin-wine-bar", name: "Le Dauphin (wine bar)", type: "Aperitivo, Cena", priceCategory: "€€", dishes: "Vino naturale, piccoli piatti", description: "Un wine bar con un'atmosfera vivace e una selezione di vini naturali. Offre anche piccoli piatti da condividere." },
+            { id: "le-bon-saint-pourcain", name: "Le Bon Saint Pourçain", type: "Pranzo, Cena", priceCategory: "€€€", dishes: "Cucina francese classica, ambiente accogliente", description: "Un piccolo bistrot tradizionale con un'atmosfera intima e piatti classici francesi ben eseguiti. Si consiglia di prenotare." },
+            { id: "septime-cave", name: "Septime Cave", type: "Aperitivo", priceCategory: "€€", dishes: "Vino naturale, formaggi, salumi", description: "La cantina di Septime, offre una selezione di vini naturali e piccoli piatti. Perfetto per un aperitivo rilassante." },
+            { id: "le-bistrot-du-sommelier", name: "Le Bistrot du Sommelier", type: "Pranzo, Cena", priceCategory: "€€€", dishes: "Cucina francese, ampia selezione di vini", description: "Un ristorante con un'ottima selezione di vini e piatti francesi tradizionali. Ideale per gli amanti del vino." },
+            { id: "le-relais-louis-xiii", name: "Le Relais Louis XIII", type: "Cena", priceCategory: "€€€€", dishes: "Cucina francese gourmet, 2 stelle Michelin", description: "Un ristorante di lusso con due stelle Michelin, offre una cucina raffinata in un ambiente elegante. Molto costoso." },
+            { id: "cafe-des-musees", name: "Café des Musées", type: "Pranzo, Cena", priceCategory: "€€", dishes: "Cucina francese tradizionale, steak frites", description: "Un bistrot classico vicino al Musée Rodin, offre piatti tradizionali francesi in un ambiente accogliente. Ottimo per un pasto dopo la visita al museo." },
+            { id: "le-bar-de-l-entrecote", name: "Le Bar de l'Entrecôte", type: "Pranzo, Cena", priceCategory: "€€", dishes: "Bistecca con salsa segreta e patatine fritte", description: "Simile a Le Relais de l'Entrecôte, offre lo stesso concept di menu unico con la famosa bistecca e patatine. Spesso meno affollato." },
+            { id: "le-potager-de-charlotte", name: "Le Potager de Charlotte", type: "Pranzo, Cena", priceCategory: "€€", dishes: "Cucina vegana, piatti creativi a base vegetale", description: "Un ristorante vegano molto apprezzato, offre piatti creativi e deliziosi a base vegetale. Ottimo per chi cerca opzioni sane e sostenibili." },
+            { id: "l-eclat-de-verre", name: "L'Éclat de Verre", type: "Pranzo, Cena", priceCategory: "€€€", dishes: "Cucina francese moderna, ambiente elegante", description: "Un ristorante con un'atmosfera raffinata e piatti moderni. Ideale per una cena elegante." },
+            { id: "le-petit-commines", name: "Le Petit Commines", type: "Pranzo, Cena", priceCategory: "€€", dishes: "Bistrot classico, piatti tradizionali", description: "Un piccolo bistrot accogliente nel Marais, offre piatti tradizionali francesi in un'atmosfera autentica." },
+            { id: "le-train-fantome", name: "Le Train Fantôme", type: "Cena, Cocktail", priceCategory: "€€", dishes: "Cocktail, piccoli piatti, atmosfera unica", description: "Un bar nascosto con un'atmosfera misteriosa e cocktail creativi. Offre anche piccoli piatti da accompagnare." },
+            { id: "le-zephyr", name: "Le Zéphyr", type: "Pranzo, Cena", priceCategory: "€€", dishes: "Brasserie classica, piatti di stagione", description: "Una brasserie tradizionale con un'ampia scelta di piatti e un'atmosfera vivace. Perfetto per un pasto informale." },
+            { id: "le-comptoir-general", name: "Le Comptoir Général", type: "Brunch, Aperitivo", priceCategory: "€€", dishes: "Brunch, cocktail, street food", description: "Un luogo unico con un'atmosfera eclettica, offre brunch, cocktail e street food in un ambiente insolito. Spesso con eventi e musica." },
+            { id: "le-barav", name: "Le Barav", type: "Aperitivo, Cena", priceCategory: "€€", dishes: "Vino, formaggi, salumi", description: "Un wine bar molto popolare con un'ampia selezione di vini e taglieri di formaggi e salumi. Perfetto per un aperitivo o una cena leggera." },
+            { id: "l-auberge-bressane", name: "L'Auberge Bressane", type: "Pranzo, Cena", priceCategory: "€€€", dishes: "Cucina tradizionale francese, pollo di Bresse", description: "Un ristorante specializzato nella cucina della regione della Bresse, famosa per il suo pollo. Piatti ricchi e saporiti." },
+            { id: "le-grand-colbert", name: "Le Grand Colbert", type: "Pranzo, Cena", priceCategory: "€€€", dishes: "Brasserie classica, frutti di mare, piatti tradizionali", description: "Una brasserie iconica con interni sontuosi, famosa per essere stata set di film. Offre piatti classici francesi in un ambiente elegante." },
+            { id: "le-clown-bar", name: "Le Clown Bar", type: "Cena", priceCategory: "€€€", dishes: "Cucina moderna, influenze giapponesi", description: "Un piccolo ristorante con un'atmosfera unica e piatti creativi con influenze giapponesi. Richiede prenotazione." },
+            { id: "la-fontaine-de-mars", name: "La Fontaine de Mars", type: "Pranzo, Cena", priceCategory: "€€€", dishes: "Cucina tradizionale francese, cassoulet", description: "Un bistrot classico e autentico, amato dai locali e dai turisti. Famoso per il suo cassoulet e i piatti tradizionali." },
+            { id: "septime-la-table", name: "Septime La Table", type: "Cena", priceCategory: "€€€€", dishes: "Menu degustazione, cucina contemporanea", description: "Il ristorante principale di Septime, offre un'esperienza gastronomica di alto livello con un menu degustazione stagionale. Estremamente difficile prenotare." },
+            { id: "le-bistrot-des-halles", name: "Le Bistrot des Halles", type: "Pranzo, Cena", priceCategory: "€€", dishes: "Cucina francese tradizionale, piatti di carne", description: "Un bistrot classico nel quartiere di Les Halles, offre piatti tradizionali francesi e un'atmosfera vivace." },
+            { id: "le-bon-georges", name: "Le Bon Georges", type: "Pranzo, Cena", priceCategory: "€€€", dishes: "Cucina francese classica, carne di qualità", description: "Un bistrot tradizionale con un'ottima selezione di carni e piatti classici. Atmosfera elegante e servizio attento." },
+            { id: "le-114-faubourg", name: "Le 114 Faubourg (Le Bristol)", type: "Pranzo, Cena", priceCategory: "€€€€", dishes: "Brasserie di lusso, 1 stella Michelin", description: "La brasserie di lusso dell'hotel Le Bristol, offre piatti raffinati in un ambiente elegante. Ottimo per un pranzo o una cena di alto livello." },
+            { id: "l-ardoise", name: "L'Ardoise", type: "Pranzo, Cena", priceCategory: "€€€", dishes: "Cucina francese moderna, menu fisso", description: "Un ristorante che offre un menu fisso con piatti moderni e creativi. Ottimo rapporto qualità-prezzo per la qualità offerta." },
+            { id: "le-relais-plaza", name: "Le Relais Plaza", type: "Pranzo, Cena", priceCategory: "€€€", dishes: "Brasserie di lusso, piatti classici", description: "Una brasserie elegante all'interno dell'Hotel Plaza Athénée, offre piatti classici francesi in un ambiente sontuoso." },
+            { id: "le-grand-vefour", name: "Le Grand Véfour", type: "Cena", priceCategory: "€€€€", dishes: "Cucina francese gourmet, 2 stelle Michelin", description: "Un ristorante storico con due stelle Michelin, offre una cucina raffinata in un ambiente sontuoso. Molto costoso." },
+            { id: "le-comptoir-de-la-gastronomie", name: "Le Comptoir de la Gastronomie", type: "Pranzo, Cena", priceCategory: "€€", dishes: "Foie gras, piatti del sud-ovest della Francia", description: "Un ristorante specializzato in foie gras e piatti del sud-ovest della Francia. Ottimo per assaggiare specialità regionali." },
+            { id: "le-dauphin-restaurant", name: "Le Dauphin (restaurant)", type: "Cena", priceCategory: "€€€", dishes: "Cucina moderna, menu degustazione", description: "Il ristorante principale di Le Dauphin, offre un menu degustazione con piatti creativi e ingredienti di stagione." },
+            { id: "le-bistrot-richelieu", name: "Le Bistrot Richelieu", type: "Pranzo, Cena", priceCategory: "€€", dishes: "Cucina francese tradizionale, vista sul Palais Royal", description: "Un bistrot classico con una bella vista sul Palais Royal, offre piatti tradizionali francesi in un ambiente piacevole." },
+            { id: "le-procope", name: "Le Procope", type: "Pranzo, Cena", priceCategory: "€€€", dishes: "Caffè più antico di Parigi, piatti tradizionali francesi, ambiente storico", description: "Il caffè più antico di Parigi, offre piatti tradizionali francesi in un ambiente storico e affascinante. Un'esperienza unica." },
+            { id: "le-vantre", name: "Le Vantre", type: "Cena", priceCategory: "€€€", dishes: "Cucina francese, piatti di carne, ampia carta dei vini", description: "Un ristorante con un'ottima selezione di carni e una vasta carta dei vini. Atmosfera accogliente e piatti saporiti." },
+            { id: "l-oiseau-blanc", name: "L'Oiseau Blanc (Peninsula Paris)", type: "Cena", priceCategory: "€€€€", dishes: "Cucina francese gourmet, vista panoramica", description: "Un ristorante stellato Michelin sul tetto del Peninsula Hotel, offre una cucina raffinata con una vista mozzafiato sulla Torre Eiffel. Molto costoso." },
+            { id: "le-relais-de-l-isle", name: "Le Relais de l'Isle", type: "Pranzo, Cena", priceCategory: "€€", dishes: "Cucina francese tradizionale, piatti di pesce", description: "Un ristorante accogliente sull'Île Saint-Louis, offre piatti tradizionali francesi e un'atmosfera tranquilla." },
+        ];
+
+        // Global variable to store favorites
+        let favorites = JSON.parse(localStorage.getItem('parisItineraryFavorites')) || [];
+        let flightDetails = JSON.parse(localStorage.getItem('parisFlightDetails')) || {
+            outboundFlightNumber: '', outboundDepartureTime: '', outboundArrivalTime: '', outboundAirline: '',
+            returnFlightNumber: '', returnDepartureTime: '', returnArrivalTime: '', returnAirline: ''
+        };
+        let accommodationDetails = JSON.parse(localStorage.getItem('parisAccommodationDetails')) || {
+            name: '', address: '', cost: '', checkInDate: '', checkOutDate: ''
+        };
+        // Initialize paid status if not already present in itineraryData
+        itineraryData.forEach(day => {
+            day.activities.forEach(activity => {
+                if (activity.paid === undefined) {
+                    activity.paid = false; // Default to false
+                }
+            });
+        });
+        // Load paid status from localStorage and merge with itineraryData
+        const savedPaidStatus = JSON.parse(localStorage.getItem('parisActivityPaidStatus')) || {};
+        itineraryData.forEach(day => {
+            day.activities.forEach(activity => {
+                const activityId = activity.title; // Using title as a simple ID
+                if (savedPaidStatus[activityId] !== undefined) {
+                    activity.paid = savedPaidStatus[activityId];
+                }
+            });
+        });
+
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const daysNav = document.getElementById('days-nav');
+            const itineraryContent = document.getElementById('itinerary-content');
+            const restaurantContent = document.getElementById('restaurant-content');
+            const favoritesContent = document.getElementById('favorites-content');
+            const budgetContent = document.getElementById('budget-content');
+            const flightContent = document.getElementById('flight-content');
+            const accommodationContent = document.getElementById('accommodation-content');
+            const localTipsContent = document.getElementById('local-tips-content'); // New content div
+            const askAiContent = document.getElementById('ask-ai-content'); // New content div
+
+            const practicalTipsContainer = document.getElementById('practical-tips');
+            const restaurantsNavButton = document.getElementById('restaurants-nav-button');
+            const favoritesNavButton = document.getElementById('favorites-nav-button');
+            const budgetNavButton = document.getElementById('budget-nav-button');
+            const flightNavButton = document.getElementById('flight-nav-button');
+            const accommodationNavButton = document.getElementById('accommodation-nav-button');
+            const localTipsNavButton = document.getElementById('local-tips-nav-button'); // New nav button
+            const askAiNavButton = document.getElementById('ask-ai-nav-button'); // New nav button
+
+            // Search bar elements
+            const searchInput = document.getElementById('search-input');
+            const searchResultsDiv = document.getElementById('search-results');
+
+
+            // Modal elements
+            const activityModal = document.getElementById('activityModal');
+            const closeButton = activityModal.querySelector('.close-button');
+            const modalTitle = document.getElementById('modal-title');
+            const modalImage = document.getElementById('modal-image');
+            const modalDescription = document.getElementById('modal-description');
+            const modalCostTime = document.getElementById('modal-cost-time');
+            const modalTicketLink = document.getElementById('modal-ticket-link');
+            const modalCuriosityBtn = document.getElementById('modal-curiosity-btn');
+            const modalInsightOutput = document.getElementById('modal-insight-output');
+            const modalPaidCheckbox = document.getElementById('modal-paid-checkbox');
+            const modalWikipediaLink = document.getElementById('modal-wikipedia-link');
+
+            // --- Utility Functions ---
+            function setActiveNavButton(activeButton) {
+                document.querySelectorAll('.nav-button').forEach(btn => btn.classList.remove('active'));
+                restaurantsNavButton.classList.remove('active');
+                favoritesNavButton.classList.remove('active');
+                budgetNavButton.classList.remove('active');
+                flightNavButton.classList.remove('active');
+                accommodationNavButton.classList.remove('active');
+                localTipsNavButton.classList.remove('active'); // Deactivate new button
+                askAiNavButton.classList.remove('active'); // Deactivate new button
+                if (activeButton) {
+                    activeButton.classList.add('active');
+                }
+            }
+
+            function hideAllContent() {
+                itineraryContent.classList.add('hidden');
+                restaurantContent.classList.add('hidden');
+                favoritesContent.classList.add('hidden');
+                budgetContent.classList.add('hidden');
+                flightContent.classList.add('hidden');
+                accommodationContent.classList.add('hidden');
+                localTipsContent.classList.add('hidden'); // Hide new content
+                askAiContent.classList.add('hidden'); // Hide new content
+                searchResultsDiv.innerHTML = ''; // Clear search results when switching tabs
+                searchResultsDiv.classList.add('hidden'); // Hide search results
+            }
+
+            // Haversine distance function (not used for map, but for distance calculation)
+            function haversineDistance(lat1, lon1, lat2, lon2) {
+                const R = 6371; // Radius of Earth in kilometers
+                const dLat = (lat2 - lat1) * Math.PI / 180;
+                const dLon = (lon2 - lon1) * Math.PI / 180;
+                const a =
+                    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+                const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+                return R * c; // Distance in km
+            }
+
+            function calculateDailyTravel(dayActivities) {
+                let totalDailyDistance = 0;
+                let totalDailyTravelTime = 0; // in hours
+                if (dayActivities.length > 1) {
+                    for (let i = 0; i < dayActivities.length - 1; i++) {
+                        const current = dayActivities[i];
+                        const next = dayActivities[i + 1];
+                        // Ensure lat/lon exist before calculating distance
+                        if (current.lat !== undefined && current.lon !== undefined && next.lat !== undefined && next.lon !== undefined) {
+                            const dist = haversineDistance(current.lat, current.lon, next.lat, next.lon);
+                            totalDailyDistance += dist;
+                            // Estimate travel time: 5 km/h for walking, 20 km/h for city transit (very rough)
+                            const avgSpeedKmH = (dist < 5) ? 5 : 20;
+                            totalDailyTravelTime += dist / avgSpeedKmH;
+                        }
+                    }
+                }
+                return { totalDailyDistance, totalDailyTravelTime };
+            }
+
+            function toggleFavorite(item, type, element) {
+                const itemId = item.id || `${type}-${item.title || item.name}`; // Ensure unique ID
+                const index = favorites.findIndex(fav => fav.id === itemId && fav.type === type);
+
+                if (index > -1) {
+                    favorites.splice(index, 1); // Remove
+                    if (element) element.classList.remove('favorited');
+                } else {
+                    favorites.push({ id: itemId, type: type, data: item }); // Add
+                    if (element) element.classList.add('favorited');
+                }
+                localStorage.setItem('parisItineraryFavorites', JSON.stringify(favorites));
+                // If on favorites page, re-render
+                if (!favoritesContent.classList.contains('hidden')) {
+                    displayFavorites();
+                }
+            }
+
+            function isFavorited(item, type) {
+                const itemId = item.id || `${type}-${item.title || item.name}`;
+                return favorites.some(fav => fav.id === itemId && fav.type === type);
+            }
+
+            function updateActivityPaidStatus(activityTitle, isPaid) {
+                let savedPaidStatus = JSON.parse(localStorage.getItem('parisActivityPaidStatus')) || {};
+                savedPaidStatus[activityTitle] = isPaid;
+                localStorage.setItem('parisActivityPaidStatus', JSON.stringify(savedPaidStatus));
+
+                // Update the in-memory itineraryData as well
+                itineraryData.forEach(day => {
+                    day.activities.forEach(activity => {
+                        if (activity.title === activityTitle) {
+                            activity.paid = isPaid;
+                        }
+                    });
+                });
+                // Re-render the current day to reflect changes
+                const currentDayIndex = parseInt(document.querySelector('.nav-button.active')?.dataset.day || '0');
+                displayDay(currentDayIndex);
+            }
+
+            function formatWikipediaLink(query) {
+                if (!query) return null;
+                // Basic formatting: replace spaces with underscores, encode URI components
+                return `https://it.wikipedia.org/wiki/${encodeURIComponent(query.replace(/ /g, '_'))}`;
+            }
+
+            function formatTripAdvisorLink(query) {
+                if (!query) return null;
+                // Generic TripAdvisor search link for robustness
+                return `https://www.tripadvisor.it/Search?q=${encodeURIComponent(query)}&geo=187147`; // geo=187147 is Paris
+            }
+
+
+            // --- Display Functions ---
+            function displayDay(dayIndex) {
+                hideAllContent();
+                const dayData = itineraryData[dayIndex];
+                const { totalDailyDistance, totalDailyTravelTime } = calculateDailyTravel(dayData.activities);
+
+                itineraryContent.innerHTML = `
+                    <div class="content-card p-6 md:p-8">
+                        <h2 class="text-3xl font-bold mb-2 text-gray-800">${dayData.title}</h2>
+                        <p class="text-md text-gray-500 mb-4">Giorno ${dayData.day} - ${dayData.date.replace(" ", " Agosto ")}</p>
+                        <p class="text-sm font-medium text-gray-700 mb-6">Distanza stimata del giorno: ${totalDailyDistance.toFixed(2)} km | Tempo di spostamento stimato: ${totalDailyTravelTime.toFixed(1)} ore</p>
+                        <div class="relative space-y-4 day-timeline"> <!-- Reduced space-y for compactness -->
+                            ${dayData.activities.map((activity, index) => {
+                                const prevActivity = dayData.activities[index - 1];
+                                let segmentDistanceInfo = '';
+                                if (prevActivity && prevActivity.lat !== undefined && prevActivity.lon !== undefined && activity.lat !== undefined && activity.lon !== undefined) {
+                                    const dist = haversineDistance(prevActivity.lat, prevActivity.lon, activity.lat, activity.lon);
+                                    segmentDistanceInfo = `<span class="text-xs text-gray-500 ml-2">(da precedente: ${dist.toFixed(2)} km)</span>`;
+                                }
+                                return `
+                                <div class="relative pl-10 cursor-pointer activity-card-summary" data-day-index="${dayIndex}" data-activity-index="${index}">
+                                    <div class="timeline-point mt-1.5"></div>
+                                    <div class="flex items-baseline mb-2">
+                                        <p class="font-semibold text-base text-gray-700">${activity.time}</p> <!-- Smaller font -->
+                                        <p class="text-xl ml-3">${activity.icon}</p> <!-- Smaller icon -->
+                                        <i class="fa-heart favorite-icon text-lg ml-auto ${isFavorited(activity, 'activity') ? 'fas favorited' : 'far'}" data-item-id="${activity.title}" data-item-type="activity"></i>
+                                    </div>
+                                    <h4 class="font-bold text-lg mt-1">${activity.title} ${segmentDistanceInfo}</h4> <!-- Smaller title -->
+                                    ${activity.imageUrl ? `<img src="${activity.imageUrl}" alt="Immagine di ${activity.title}" class="w-full h-32 object-cover rounded-lg my-2 shadow-md" onerror="this.onerror=null;this.src='https://placehold.co/400x250/cccccc/000000?text=Immagine+non+disponibile';">` : ''}
+                                    <p class="text-gray-600 text-sm mt-1">${activity.description.substring(0, 250)}...</p> <!-- Longer substring for preview -->
+                                    <p class="text-xs font-medium text-blue-600 mt-2">Costo: ${activity.cost} | Tempo stimato: ${activity.visitTime}</p> <!-- Smaller font -->
+                                    <div class="flex items-center mt-2">
+                                        <input type="checkbox" id="paid-${dayIndex}-${index}" class="form-checkbox h-3 w-3 text-green-600" ${activity.paid ? 'checked' : ''} data-activity-title="${activity.title}">
+                                        <label for="paid-${dayIndex}-${index}" class="ml-1 text-gray-700 text-xs">Pagato</label>
+                                    </div>
+                                </div>
+                            `;
+                            }).join('')}
+                        </div>
+                    </div>
+                `;
+                itineraryContent.classList.remove('hidden');
+                setActiveNavButton(document.querySelector(`.nav-button[data-day='${dayIndex}']`));
+
+                // Attach event listeners for modal, favorites, and paid checkbox
+                document.querySelectorAll('.activity-card-summary').forEach(card => {
+                    card.addEventListener('click', (event) => {
+                        // Prevent modal from opening if favorite icon or checkbox is clicked
+                        if (!event.target.classList.contains('favorite-icon') && !event.target.classList.contains('form-checkbox') && !event.target.classList.contains('ticket-link')) {
+                            const dayIdx = parseInt(card.dataset.dayIndex);
+                            const activityIdx = parseInt(card.dataset.activityIndex);
+                            openActivityModal(itineraryData[dayIdx].activities[activityIdx]);
+                        }
+                    });
+                });
+                document.querySelectorAll('.favorite-icon').forEach(icon => {
+                    icon.addEventListener('click', (event) => {
+                        const itemId = icon.dataset.itemId;
+                        const itemType = icon.dataset.itemType;
+                        // Find the original activity object to pass to toggleFavorite
+                        let activity = null;
+                        for (let d = 0; d < itineraryData.length; d++) {
+                            const found = itineraryData[d].activities.find(a => a.title === itemId);
+                            if (found) {
+                                activity = found;
+                                break;
+                            }
+                        }
+                        if (activity) {
+                            toggleFavorite(activity, itemType, icon);
+                        }
+                        event.stopPropagation(); // Prevent modal from opening
+                    });
+                });
+                document.querySelectorAll('.form-checkbox').forEach(checkbox => {
+                    checkbox.addEventListener('change', (event) => {
+                        const activityTitle = event.target.dataset.activityTitle;
+                        updateActivityPaidStatus(activityTitle, event.target.checked);
+                        event.stopPropagation();
+                    });
+                });
+            }
+
+            function openActivityModal(activity) {
+                modalTitle.textContent = activity.title;
+                modalImage.src = activity.imageUrl || 'https://placehold.co/400x250/cccccc/000000?text=Immagine+non+disponibile';
+                modalDescription.innerHTML = activity.description;
+                modalCostTime.textContent = `Costo: ${activity.cost} | Tempo stimato: ${activity.visitTime}`;
+                
+                if (activity.ticketLink) {
+                    modalTicketLink.href = activity.ticketLink;
+                    modalTicketLink.classList.remove('hidden');
+                } else {
+                    modalTicketLink.classList.add('hidden');
+                }
+
+                if (activity.wikipediaSearch) {
+                    modalWikipediaLink.href = formatWikipediaLink(activity.wikipediaSearch);
+                    modalWikipediaLink.classList.remove('hidden');
+                } else {
+                    modalWikipediaLink.classList.add('hidden');
+                }
+
+                modalPaidCheckbox.checked = activity.paid;
+                modalPaidCheckbox.onchange = (event) => {
+                    updateActivityPaidStatus(activity.title, event.target.checked);
+                };
+
+                // Reset curiosity section
+                modalInsightOutput.innerHTML = '';
+                modalInsightOutput.classList.add('hidden');
+                modalCuriosityBtn.disabled = false;
+                modalCuriosityBtn.onclick = () => generateInsight(activity.title, activity.description, modalInsightOutput, modalCuriosityBtn);
+
+                activityModal.style.display = "flex"; // Use flex to center
+            }
+
+            closeButton.onclick = () => {
+                activityModal.style.display = "none";
+            }
+
+            window.onclick = (event) => {
+                if (event.target == activityModal) {
+                    activityModal.style.display = "none";
+                }
+            }
+
+
+            function displayRestaurants() {
+                hideAllContent();
+                let restaurantsHtml = `
+                    <div class="content-card p-6 md:p-8">
+                        <h2 class="text-3xl font-bold mb-4 text-gray-800">Proposte Culinare a Parigi</h2>
+                        <p class="text-md text-gray-500 mb-6">Esplora una selezione di ristoranti, caffè e bistrot per ogni momento della giornata e per ogni budget.</p>
+                `;
+
+                const priceCategories = ["€", "€€", "€€€", "€€€€"];
+                priceCategories.forEach(category => {
+                    const filteredRestaurants = restaurantData.filter(r => r.priceCategory === category);
+                    if (filteredRestaurants.length > 0) {
+                        restaurantsHtml += `
+                            <h3 class="text-2xl font-bold mt-8 mb-4 text-gray-700">Fascia di Prezzo: <span class="price-category">${category}</span></h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        `;
+                        filteredRestaurants.forEach(restaurant => {
+                            restaurantsHtml += `
+                                <div class="content-card p-4">
+                                    <div class="flex justify-between items-center">
+                                        <h4 class="font-bold text-xl text-gray-800">${restaurant.name}</h4>
+                                        <i class="fa-heart favorite-icon text-xl ${isFavorited(restaurant, 'restaurant') ? 'fas favorited' : 'far'}" data-item-id="${restaurant.id}" data-item-type="restaurant"></i>
+                                    </div>
+                                    <p class="text-gray-600 text-sm mt-1">Tipo: ${restaurant.type}</p>
+                                    <p class="text-gray-600 text-sm mt-1">Piatti tipici: ${restaurant.dishes}</p>
+                                    <p class="text-gray-700 mt-2">${restaurant.description}</p>
+                                    <a href="${formatTripAdvisorLink(restaurant.name + ' Parigi')}" target="_blank" class="inline-block mt-2 px-3 py-1 bg-yellow-500 text-white rounded-md hover:bg-yellow-600 transition-colors duration-200 text-sm">TripAdvisor</a>
+                                </div>
+                            `;
+                        });
+                        restaurantsHtml += `</div>`;
+                    }
+                });
+                restaurantsHtml += `</div>`;
+                restaurantContent.innerHTML = restaurantsHtml;
+
+                restaurantContent.classList.remove('hidden');
+                setActiveNavButton(restaurantsNavButton);
+
+                document.querySelectorAll('#restaurant-content .favorite-icon').forEach(icon => {
+                    icon.addEventListener('click', (event) => {
+                        const itemId = icon.dataset.itemId;
+                        const itemType = icon.dataset.itemType;
+                        const restaurant = restaurantData.find(r => r.id === itemId);
+                        toggleFavorite(restaurant, itemType, icon);
+                        event.stopPropagation();
+                    });
+                });
+            }
+
+            function displayFavorites() {
+                hideAllContent();
+                let favoritesHtml = `
+                    <div class="content-card p-6 md:p-8">
+                        <h2 class="text-3xl font-bold mb-4 text-gray-800">I Tuoi Preferiti</h2>
+                        <p class="text-md text-gray-500 mb-6">Qui trovi tutte le attività e i ristoranti che hai salvato.</p>
+                `;
+
+                if (favorites.length === 0) {
+                    favoritesHtml += `<p class="text-gray-600">Non hai ancora aggiunto nessun preferito. Clicca sul cuore ❤️ per salvare le tue tappe o ristoranti preferiti!</p>`;
+                } else {
+                    favorites.forEach(fav => {
+                        const item = fav.data;
+                        if (fav.type === 'activity') {
+                            favoritesHtml += `
+                                <div class="content-card p-4 mb-4">
+                                    <div class="flex justify-between items-center">
+                                        <h4 class="font-bold text-xl text-gray-800">${item.title}</h4>
+                                        <i class="fa-heart favorite-icon text-xl fas favorited" data-item-id="${item.title}" data-item-type="activity"></i>
+                                    </div>
+                                    <p class="text-gray-600 text-sm mt-1">Tipo: Attività</p>
+                                    ${item.imageUrl ? `<img src="${item.imageUrl}" alt="Immagine di ${item.title}" class="w-full h-32 object-cover rounded-lg my-2 shadow-md" onerror="this.onerror=null;this.src='https://placehold.co/400x250/cccccc/000000?text=Immagine+non+disponibile';">` : ''}
+                                    <p class="text-gray-700 mt-1">${item.description.substring(0, 100)}...</p>
+                                    <p class="text-sm font-medium text-blue-600 mt-2">Costo: ${item.cost} | Tempo stimato: ${item.visitTime}</p>
+                                    ${item.ticketLink ? `<a href="${item.ticketLink}" target="_blank" class="inline-block mt-2 px-3 py-1 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors duration-200 text-sm">Acquista Biglietto</a>` : ''}
+                                    ${item.wikipediaSearch ? `<a href="${formatWikipediaLink(item.wikipediaSearch)}" target="_blank" class="inline-block mt-2 px-3 py-1 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors duration-200 text-sm">Wikipedia</a>` : ''}
+                                </div>
+                            `;
+                        } else if (fav.type === 'restaurant') {
+                            favoritesHtml += `
+                                <div class="content-card p-4 mb-4">
+                                    <div class="flex justify-between items-center">
+                                        <h4 class="font-bold text-xl text-gray-800">${item.name}</h4>
+                                        <i class="fa-heart favorite-icon text-xl fas favorited" data-item-id="${item.id}" data-item-type="restaurant"></i>
+                                    </div>
+                                    <p class="text-gray-600 text-sm mt-1">Tipo: Ristorante</p>
+                                    <p class="text-gray-600 text-sm mt-1">Fascia di Prezzo: ${item.priceCategory}</p>
+                                    <p class="text-gray-700 mt-2">${item.description}</p>
+                                    <a href="${formatTripAdvisorLink(item.name + ' Parigi')}" target="_blank" class="inline-block mt-2 px-3 py-1 bg-yellow-500 text-white rounded-md hover:bg-yellow-600 transition-colors duration-200 text-sm">TripAdvisor</a>
+                                </div>
+                            `;
+                        }
+                    });
+                }
+                favoritesHtml += `</div>`;
+                favoritesContent.innerHTML = favoritesHtml;
+                favoritesContent.classList.remove('hidden');
+                setActiveNavButton(favoritesNavButton);
+
+                document.querySelectorAll('#favorites-content .favorite-icon').forEach(icon => {
+                    icon.addEventListener('click', (event) => {
+                        const itemId = icon.dataset.itemId;
+                        const itemType = icon.dataset.itemType;
+                        let item;
+                        if (itemType === 'activity') {
+                            for (let d = 0; d < itineraryData.length; d++) {
+                                const found = itineraryData[d].activities.find(a => a.title === itemId);
+                                if (found) {
+                                    item = found;
+                                    break;
+                                }
+                            }
+                        } else if (itemType === 'restaurant') {
+                            item = restaurantData.find(r => r.id === itemId);
+                        }
+                        if (item) {
+                            toggleFavorite(item, itemType, icon);
+                        }
+                        event.stopPropagation();
+                    });
+                });
+            }
+
+            function displayBudgetSimulator() {
+                hideAllContent();
+                budgetContent.innerHTML = `
+                    <div class="content-card p-6 md:p-8">
+                        <h2 class="text-3xl font-bold mb-4 text-gray-800">Simulatore di Budget</h2>
+                        <p class="text-md text-gray-500 mb-6">Pianifica le tue spese stimando il budget per le diverse categorie.</p>
+
+                        <div class="mb-4">
+                            <label for="total-budget" class="block text-gray-700 text-sm font-bold mb-2">Budget Totale (€):</label>
+                            <input type="number" id="total-budget" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="Es. 2000" value="2000">
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <label for="flight-cost" class="block text-gray-700 text-sm font-bold mb-2">Costo Voli (€):</label>
+                                <input type="number" id="flight-cost" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="Es. 150" value="150">
+                            </div>
+                            <div>
+                                <label for="accommodation-cost" class="block text-gray-700 text-sm font-bold mb-2">Costo Alloggio (€):</label>
+                                <input type="number" id="accommodation-cost" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="Es. 700" value="700">
+                            </div>
+                            <div>
+                                <label for="daily-food-budget" class="block text-gray-700 text-sm font-bold mb-2">Budget Cibo/Giorno (€):</label>
+                                <input type="number" id="daily-food-budget" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="Es. 50" value="50">
+                            </div>
+                            <div>
+                                <label for="daily-transport-budget" class="block text-gray-700 text-sm font-bold mb-2">Budget Trasporti/Giorno (€):</label>
+                                <input type="number" id="daily-transport-budget" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="Es. 10" value="10">
+                            </div>
+                        </div>
+
+                        <button id="calculate-budget" class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors duration-200">Calcola Budget</button>
+
+                        <div id="budget-results" class="mt-8 p-4 bg-gray-50 border border-gray-200 rounded-md">
+                            <h3 class="text-xl font-bold mb-2 text-gray-700">Riepilogo Spese Stimate:</h3>
+                            <p><strong>Voli:</strong> <span id="res-flight">€0</span></p>
+                            <p><strong>Alloggio:</strong> <span id="res-accommodation">€0</span></p>
+                            <p><strong>Cibo:</strong> <span id="res-food">€0</span></p>
+                            <p><strong>Trasporti:</strong> <span id="res-transport">€0</span></p>
+                            <p><strong>Attrazioni (stimate):</strong> <span id="res-attractions">€0</span></p>
+                            <p class="mt-4 text-lg font-semibold"><strong>Budget Rimanente per Extra/Shopping:</strong> <span id="res-remaining" class="text-green-600">€0</span></p>
+                            <p class="text-sm text-gray-500 mt-2">Il budget per le attrazioni è basato sui costi stimati nell'itinerario.</p>
+                        </div>
+                    </div>
+                `;
+                budgetContent.classList.remove('hidden');
+                setActiveNavButton(budgetNavButton);
+
+                // Calculate initial attraction costs
+                let totalAttractionCosts = 0;
+                itineraryData.forEach(day => {
+                    day.activities.forEach(activity => {
+                        if (activity.cost && activity.cost !== "Gratuito" && activity.cost !== "Variabile" && !activity.cost.includes("Incluso")) {
+                            totalAttractionCosts += parseFloat(activity.cost.replace('€', '').replace('+', '').trim());
+                        }
+                    });
+                });
+
+                document.getElementById('calculate-budget').addEventListener('click', () => {
+                    const totalBudget = parseFloat(document.getElementById('total-budget').value) || 0;
+                    const flightCost = parseFloat(document.getElementById('flight-cost').value) || 0;
+                    const accommodationCost = parseFloat(document.getElementById('accommodation-cost').value) || 0;
+                    const dailyFoodBudget = parseFloat(document.getElementById('daily-food-budget').value) || 0;
+                    const dailyTransportBudget = parseFloat(document.getElementById('daily-transport-budget').value) || 0;
+                    
+                    const numDays = itineraryData.length;
+                    const totalFoodCost = dailyFoodBudget * numDays;
+                    const totalTransportCost = dailyTransportBudget * numDays;
+
+                    const totalSpent = flightCost + accommodationCost + totalFoodCost + totalTransportCost + totalAttractionCosts;
+                    const remainingBudget = totalBudget - totalSpent;
+
+                    document.getElementById('res-flight').textContent = `€${flightCost.toFixed(2)}`;
+                    document.getElementById('res-accommodation').textContent = `€${accommodationCost.toFixed(2)}`;
+                    document.getElementById('res-food').textContent = `€${totalFoodCost.toFixed(2)}`;
+                    document.getElementById('res-transport').textContent = `€${totalTransportCost.toFixed(2)}`;
+                    document.getElementById('res-attractions').textContent = `€${totalAttractionCosts.toFixed(2)}`;
+                    
+                    const remainingSpan = document.getElementById('res-remaining');
+                    remainingSpan.textContent = `€${remainingBudget.toFixed(2)}`;
+                    if (remainingBudget < 0) {
+                        remainingSpan.classList.remove('text-green-600');
+                        remainingSpan.classList.add('text-red-600');
+                    } else {
+                        remainingSpan.classList.remove('text-red-600');
+                        remainingSpan.classList.add('text-green-600');
+                    }
+                });
+
+                // Trigger calculation on load with default values
+                document.getElementById('calculate-budget').click();
+            }
+
+            function displayFlightDetails() {
+                hideAllContent();
+                flightContent.innerHTML = `
+                    <div class="content-card p-6 md:p-8">
+                        <h2 class="text-3xl font-bold mb-4 text-gray-800">Dettagli Volo</h2>
+                        <p class="text-md text-gray-500 mb-6">Inserisci qui i dettagli dei tuoi voli di andata e ritorno.</p>
+
+                        <h3 class="text-xl font-bold mb-3 text-gray-700">Volo di Andata</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                            <div>
+                                <label for="outbound-flight-number" class="block text-gray-700 text-sm font-bold mb-2">Numero Volo:</label>
+                                <input type="text" id="outbound-flight-number" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" value="${flightDetails.outboundFlightNumber}">
+                            </div>
+                            <div>
+                                <label for="outbound-airline" class="block text-gray-700 text-sm font-bold mb-2">Compagnia Aerea:</label>
+                                <input type="text" id="outbound-airline" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" value="${flightDetails.outboundAirline}">
+                            </div>
+                            <div>
+                                <label for="outbound-departure-time" class="block text-gray-700 text-sm font-bold mb-2">Orario Partenza:</label>
+                                <input type="time" id="outbound-departure-time" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" value="${flightDetails.outboundDepartureTime}">
+                            </div>
+                            <div>
+                                <label for="outbound-arrival-time" class="block text-gray-700 text-sm font-bold mb-2">Orario Arrivo:</label>
+                                <input type="time" id="outbound-arrival-time" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" value="${flightDetails.outboundArrivalTime}">
+                            </div>
+                        </div>
+
+                        <h3 class="text-xl font-bold mb-3 text-gray-700">Volo di Ritorno</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                            <div>
+                                <label for="return-flight-number" class="block text-gray-700 text-sm font-bold mb-2">Numero Volo:</label>
+                                <input type="text" id="return-flight-number" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" value="${flightDetails.returnFlightNumber}">
+                            </div>
+                            <div>
+                                <label for="return-airline" class="block text-gray-700 text-sm font-bold mb-2">Compagnia Aerea:</label>
+                                <input type="text" id="return-airline" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" value="${flightDetails.returnAirline}">
+                            </div>
+                            <div>
+                                <label for="return-departure-time" class="block text-gray-700 text-sm font-bold mb-2">Orario Partenza:</label>
+                                <input type="time" id="return-departure-time" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" value="${flightDetails.returnDepartureTime}">
+                            </div>
+                            <div>
+                                <label for="return-arrival-time" class="block text-gray-700 text-sm font-bold mb-2">Orario Arrivo:</label>
+                                <input type="time" id="return-arrival-time" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" value="${flightDetails.returnArrivalTime}">
+                            </div>
+                        </div>
+                        <button id="save-flight-details" class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors duration-200">Salva Dettagli Volo</button>
+                    </div>
+                `;
+                flightContent.classList.remove('hidden');
+                setActiveNavButton(flightNavButton);
+
+                document.getElementById('save-flight-details').addEventListener('click', () => {
+                    flightDetails.outboundFlightNumber = document.getElementById('outbound-flight-number').value;
+                    flightDetails.outboundAirline = document.getElementById('outbound-airline').value;
+                    flightDetails.outboundDepartureTime = document.getElementById('outbound-departure-time').value;
+                    flightDetails.outboundArrivalTime = document.getElementById('outbound-arrival-time').value;
+                    flightDetails.returnFlightNumber = document.getElementById('return-flight-number').value;
+                    flightDetails.returnAirline = document.getElementById('return-airline').value;
+                    flightDetails.returnDepartureTime = document.getElementById('return-departure-time').value;
+                    flightDetails.returnArrivalTime = document.getElementById('return-arrival-time').value;
+                    localStorage.setItem('parisFlightDetails', JSON.stringify(flightDetails));
+                    alert('Dettagli volo salvati!'); // Simple confirmation
+                });
+            }
+
+            function displayAccommodationDetails() {
+                hideAllContent();
+                accommodationContent.innerHTML = `
+                    <div class="content-card p-6 md:p-8">
+                        <h2 class="text-3xl font-bold mb-4 text-gray-800">Dettagli Alloggio</h2>
+                        <p class="text-md text-gray-500 mb-6">Inserisci qui i dettagli del tuo alloggio.</p>
+
+                        <div class="mb-4">
+                            <label for="accommodation-name" class="block text-gray-700 text-sm font-bold mb-2">Nome Alloggio:</label>
+                            <input type="text" id="accommodation-name" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" value="${accommodationDetails.name}">
+                        </div>
+                        <div class="mb-4">
+                            <label for="accommodation-address" class="block text-gray-700 text-sm font-bold mb-2">Indirizzo:</label>
+                            <input type="text" id="accommodation-address" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" value="${accommodationDetails.address}">
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <label for="accommodation-cost-total" class="block text-gray-700 text-sm font-bold mb-2">Costo Totale (€):</label>
+                                <input type="number" id="accommodation-cost-total" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" value="${accommodationDetails.cost}">
+                            </div>
+                            <div>
+                                <label for="accommodation-check-in" class="block text-gray-700 text-sm font-bold mb-2">Data Check-in:</label>
+                                <input type="date" id="accommodation-check-in" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" value="${accommodationDetails.checkInDate}">
+                            </div>
+                            <div>
+                                <label for="accommodation-check-out" class="block text-gray-700 text-sm font-bold mb-2">Data Check-out:</label>
+                                <input type="date" id="accommodation-check-out" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" value="${accommodationDetails.checkOutDate}">
+                            </div>
+                        </div>
+                        <button id="save-accommodation-details" class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors duration-200">Salva Dettagli Alloggio</button>
+                    </div>
+                `;
+                accommodationContent.classList.remove('hidden');
+                setActiveNavButton(accommodationNavButton);
+
+                document.getElementById('save-accommodation-details').addEventListener('click', () => {
+                    accommodationDetails.name = document.getElementById('accommodation-name').value;
+                    accommodationDetails.address = document.getElementById('accommodation-address').value;
+                    accommodationDetails.cost = document.getElementById('accommodation-cost-total').value;
+                    accommodationDetails.checkInDate = document.getElementById('accommodation-check-in').value;
+                    accommodationDetails.checkOutDate = document.getElementById('accommodation-check-out').value;
+                    localStorage.setItem('parisAccommodationDetails', JSON.stringify(accommodationDetails));
+                    alert('Dettagli alloggio salvati!'); // Simple confirmation
+                });
+            }
+
+            function displayLocalTips() {
+                hideAllContent();
+                localTipsContent.innerHTML = `
+                    <div class="content-card p-6 md:p-8">
+                        <h2 class="text-3xl font-bold mb-4 text-gray-800">Consigli Locali per la Tua Giornata</h2>
+                        <p class="text-md text-gray-500 mb-6">Ottieni suggerimenti personalizzati basati sulle attività del giorno selezionato.</p>
+                        <div class="mb-4">
+                            <label for="local-tips-day-select" class="block text-gray-700 text-sm font-bold mb-2">Seleziona Giorno:</label>
+                            <select id="local-tips-day-select" class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                                ${itineraryData.map((day, index) => `<option value="${index}">Giorno ${day.day} - ${day.date}</option>`).join('')}
+                            </select>
+                        </div>
+                        <button id="generate-local-tips" class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors duration-200">Genera Consigli</button>
+                        <div id="local-tips-output" class="mt-8 p-4 bg-gray-50 border border-gray-200 rounded-md hidden"></div>
+                    </div>
+                `;
+                localTipsContent.classList.remove('hidden');
+                setActiveNavButton(localTipsNavButton);
+
+                document.getElementById('generate-local-tips').addEventListener('click', async () => {
+                    const selectedDayIndex = parseInt(document.getElementById('local-tips-day-select').value);
+                    const dayData = itineraryData[selectedDayIndex];
+                    const tipsOutputDiv = document.getElementById('local-tips-output');
+                    const generateButton = document.getElementById('generate-local-tips');
+
+                    tipsOutputDiv.classList.remove('hidden');
+                    tipsOutputDiv.innerHTML = '<p class="text-blue-600">Generazione consigli locali...</p>';
+                    generateButton.disabled = true;
+
+                    try {
+                        let chatHistory = [];
+                        const activitiesTitles = dayData.activities.map(act => act.title).join(', ');
+                        const prompt = `Forniscimi 3-4 brevi consigli locali (es. mercati, caffè particolari, negozietti, angoli nascosti, eventi tipici) per un visitatore a Parigi, tenendo conto che in questa giornata visiterà: ${activitiesTitles}. I consigli devono essere concisi e in italiano.`;
+                        chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+                        const payload = { contents: chatHistory };
+                        const apiKey = ""; // Canvas will provide this
+                        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+                        const response = await fetch(apiUrl, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+
+                        const result = await response.json();
+                        if (result.candidates && result.candidates.length > 0 &&
+                            result.candidates[0].content && result.candidates[0].content.parts &&
+                            result.candidates[0].content.parts.length > 0) {
+                            const text = result.candidates[0].content.parts[0].text;
+                            tipsOutputDiv.innerHTML = `<p>${text}</p>`;
+                        } else {
+                            tipsOutputDiv.innerHTML = '<p class="text-red-600">Impossibile generare consigli. Riprova.</p>';
+                        }
+                    } catch (error) {
+                        console.error("Error fetching local tips:", error);
+                        tipsOutputDiv.innerHTML = '<p class="text-red-600">Si è verificato un errore durante il caricamento dei consigli.</p>';
+                    } finally {
+                        generateButton.disabled = false;
+                    }
+                });
+            }
+
+            function displayAskAI() {
+                hideAllContent();
+                askAiContent.innerHTML = `
+                    <div class="content-card p-6 md:p-8">
+                        <h2 class="text-3xl font-bold mb-4 text-gray-800">Chiedi all'AI su Parigi</h2>
+                        <p class="text-md text-gray-500 mb-6">Fai una domanda generica sul tuo viaggio a Parigi o chiedi suggerimenti specifici.</p>
+                        <textarea id="ai-prompt-input" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline h-32 mb-4" placeholder="Es. Quali sono i migliori mercati delle pulci a Parigi?"></textarea>
+                        <button id="send-ai-prompt" class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors duration-200">Chiedi all'AI</button>
+                        <div id="ai-response-output" class="mt-8 p-4 bg-gray-50 border border-gray-200 rounded-md hidden"></div>
+                    </div>
+                `;
+                askAiContent.classList.remove('hidden');
+                setActiveNavButton(askAiNavButton);
+
+                document.getElementById('send-ai-prompt').addEventListener('click', async () => {
+                    const promptInput = document.getElementById('ai-prompt-input');
+                    const responseOutputDiv = document.getElementById('ai-response-output');
+                    const sendButton = document.getElementById('send-ai-prompt');
+
+                    const userPrompt = promptInput.value.trim();
+                    if (!userPrompt) {
+                        responseOutputDiv.classList.remove('hidden');
+                        responseOutputDiv.innerHTML = '<p class="text-red-600">Per favore, inserisci una domanda.</p>';
+                        return;
+                    }
+
+                    responseOutputDiv.classList.remove('hidden');
+                    responseOutputDiv.innerHTML = '<p class="text-blue-600">L\'AI sta elaborando la tua richiesta...</p>';
+                    sendButton.disabled = true;
+
+                    try {
+                        let chatHistory = [];
+                        chatHistory.push({ role: "user", parts: [{ text: userPrompt }] });
+                        const payload = { contents: chatHistory };
+                        const apiKey = ""; // Canvas will provide this
+                        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+                        const response = await fetch(apiUrl, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+
+                        const result = await response.json();
+                        if (result.candidates && result.candidates.length > 0 &&
+                            result.candidates[0].content && result.candidates[0].content.parts &&
+                            result.candidates[0].content.parts.length > 0) {
+                            const text = result.candidates[0].content.parts[0].text;
+                            responseOutputDiv.innerHTML = `<p>${text}</p>`;
+                        } else {
+                            responseOutputDiv.innerHTML = '<p class="text-red-600">Impossibile ottenere una risposta dall\'AI. Riprova.</p>';
+                        }
+                    } catch (error) {
+                        console.error("Error fetching AI response:", error);
+                        responseOutputDiv.innerHTML = '<p class="text-red-600">Si è verificato un errore durante la comunicazione con l\'AI.</p>';
+                    } finally {
+                        sendButton.disabled = false;
+                    }
+                });
+            }
+
+
+            // --- Event Listeners and Initial Load ---
+            itineraryData.forEach((day, index) => {
+                const button = document.createElement('button');
+                button.className = 'nav-button px-3 py-1.5 text-sm font-bold text-gray-600 bg-white border border-gray-300 rounded-full hover:bg-gray-100';
+                button.textContent = `Giorno ${day.day}`;
+                button.dataset.day = index;
+                button.addEventListener('click', () => displayDay(index));
+                daysNav.appendChild(button);
+            });
+
+            restaurantsNavButton.addEventListener('click', displayRestaurants);
+            favoritesNavButton.addEventListener('click', displayFavorites);
+            budgetNavButton.addEventListener('click', displayBudgetSimulator);
+            flightNavButton.addEventListener('click', displayFlightDetails);
+            accommodationNavButton.addEventListener('click', displayAccommodationDetails);
+            localTipsNavButton.addEventListener('click', displayLocalTips); // New listener
+            askAiNavButton.addEventListener('click', displayAskAI); // New listener
+
+
+            // Scroll event listener for sticky nav
+            const mainNav = document.getElementById('main-nav');
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 100) { // Adjust threshold as needed
+                    mainNav.classList.add('nav-scrolled');
+                } else {
+                    mainNav.classList.remove('nav-scrolled');
+                }
+            });
+
+
+            practicalTipsData.forEach(tip => {
+                const tipDiv = document.createElement('div');
+                tipDiv.className = 'border-b border-gray-200';
+                tipDiv.innerHTML = `
+                    <button class="accordion-toggle w-full text-left py-3 px-1 flex justify-between items-center">
+                        <span class="font-semibold text-lg text-gray-700">${tip.title}</span>
+                        <span class="transform transition-transform duration-300">▼</span>
+                    </button>
+                    <div class="accordion-content">
+                        <p class="pt-2 pb-4 px-1 text-gray-600">${tip.content}</p>
+                    </div>
+                `;
+                practicalTipsContainer.appendChild(tipDiv);
+            });
+            
+            document.querySelectorAll('.accordion-toggle').forEach(button => {
+                button.addEventListener('click', () => {
+                    const content = button.nextElementSibling;
+                    const icon = button.querySelector('span:last-child');
+                    if (content.style.maxHeight) {
+                        content.style.maxHeight = null;
+                        icon.style.transform = 'rotate(0deg)';
+                    } else {
+                        // Close all other accordions first
+                        document.querySelectorAll('.accordion-content').forEach(c => c.style.maxHeight = null);
+                        document.querySelectorAll('.accordion-toggle span:last-child').forEach(i => i.style.transform = 'rotate(0deg)');
+                        
+                        content.style.maxHeight = content.scrollHeight + "px";
+                        icon.style.transform = 'rotate(180deg)';
+                    }
+                });
+            });
+
+            displayDay(0); // Display the first day by default
+
+            const costsCtx = document.getElementById('costsChart').getContext('2d');
+            const costsData = {
+                'Torre Eiffel': 28.30,
+                'Catacombe': 30.00,
+                'Museo Picasso': 16.00,
+                'Palais Garnier': 16.50,
+                'Esc. Giverny': 12.50,
+                'Esc. Mont S.M.': 16.00,
+            };
+            
+            new Chart(costsCtx, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(costsData),
+                    datasets: [{
+                        label: 'Costo ingresso (€)',
+                        data: Object.values(costsData),
+                        backgroundColor: [
+                            'rgba(75, 192, 192, 0.6)',
+                            'rgba(54, 162, 235, 0.6)',
+                            'rgba(255, 206, 86, 0.6)',
+                            'rgba(153, 102, 255, 0.6)',
+                            'rgba(255, 99, 132, 0.6)',
+                            'rgba(255, 159, 64, 0.6)'
+                        ],
+                        borderColor: [
+                            'rgba(75, 192, 192, 1)',
+                            'rgba(54, 162, 235, 1)',
+                            'rgba(255, 206, 86, 1)',
+                            'rgba(153, 102, 255, 1)',
+                            'rgba(255, 99, 132, 1)',
+                            'rgba(255, 159, 64, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Costo in Euro (€)'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `Costo: €${context.raw.toFixed(2)}`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Function to generate insight using Gemini API
+            async function generateInsight(title, description, outputDiv, buttonElement) {
+                outputDiv.classList.remove('hidden');
+                outputDiv.innerHTML = '<p class="text-blue-600">Caricamento curiosità...</p>';
+                buttonElement.disabled = true;
+
+                try {
+                    let chatHistory = [];
+                    const prompt = `Forniscimi una curiosità culturale o un breve aneddoto interessante e poco conosciuto su "${title}" a Parigi, basato sulla seguente descrizione: "${description}". La risposta deve essere concisa (massimo 2-3 frasi) e in italiano.`;
+                    chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+                    const payload = { contents: chatHistory };
+                    const apiKey = ""; // Canvas will provide this
+                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    const result = await response.json();
+                    if (result.candidates && result.candidates.length > 0 &&
+                        result.candidates[0].content && result.candidates[0].content.parts &&
+                        result.candidates[0].content.parts.length > 0) {
+                        const text = result.candidates[0].content.parts[0].text;
+                        outputDiv.innerHTML = `<p>${text}</p>`;
+                    } else {
+                        outputDiv.innerHTML = '<p class="text-red-600">Impossibile generare la curiosità. Riprova.</p>';
+                    }
+                } catch (error) {
+                    console.error("Error fetching cultural insight:", error);
+                    outputDiv.innerHTML = '<p class="text-red-600">Si è verificato un errore durante il caricamento.</p>';
+                } finally {
+                    buttonElement.disabled = false;
+                }
+            }
+
+            // Search functionality
+            searchInput.addEventListener('input', () => {
+                const query = searchInput.value.toLowerCase().trim();
+                searchResultsDiv.innerHTML = ''; // Clear previous results
+
+                if (query.length < 2) { // Only search if at least 2 characters
+                    searchResultsDiv.classList.add('hidden');
+                    return;
+                }
+
+                let foundResults = [];
+                itineraryData.forEach((day, dayIndex) => {
+                    day.activities.forEach(activity => {
+                        if (activity.title.toLowerCase().includes(query) || activity.description.toLowerCase().includes(query)) {
+                            foundResults.push({
+                                day: day.day,
+                                title: activity.title,
+                                dayIndex: dayIndex,
+                                activityIndex: day.activities.indexOf(activity)
+                            });
+                        }
+                    });
+                });
+
+                if (foundResults.length > 0) {
+                    searchResultsDiv.classList.remove('hidden');
+                    let resultsHtml = `<p class="text-gray-700 font-semibold mb-2">Risultati ricerca:</p><ul>`;
+                    foundResults.forEach(result => {
+                        resultsHtml += `<li class="mb-1"><a href="#" class="text-blue-600 hover:underline" data-day-index="${result.dayIndex}" data-activity-index="${result.activityIndex}">${result.title} (Giorno ${result.day})</a></li>`;
+                    });
+                    resultsHtml += `</ul>`;
+                    searchResultsDiv.innerHTML = resultsHtml;
+
+                    // Add click listeners to search results
+                    searchResultsDiv.querySelectorAll('a').forEach(link => {
+                        link.addEventListener('click', (event) => {
+                            event.preventDefault();
+                            const dayIdx = parseInt(event.target.dataset.dayIndex);
+                            const activityIdx = parseInt(event.target.dataset.activityIndex);
+                            openActivityModal(itineraryData[dayIdx].activities[activityIdx]);
+                            searchInput.value = ''; // Clear search input
+                            searchResultsDiv.classList.add('hidden'); // Hide search results
+                        });
+                    });
+
+                } else {
+                    searchResultsDiv.classList.remove('hidden');
+                    searchResultsDiv.innerHTML = `<p class="text-gray-600">Nessun risultato trovato per "${query}".</p>`;
+                }
+            });
+
+            // Initial attachment of favorite listeners for currently displayed content (Day 0)
+            document.querySelectorAll('.favorite-icon').forEach(icon => {
+                icon.addEventListener('click', (event) => {
+                    const itemId = icon.dataset.itemId;
+                    const itemType = icon.dataset.itemType;
+                    const dayIdx = parseInt(icon.closest('.activity-card-summary').dataset.dayIndex);
+                    const activityIdx = parseInt(icon.closest('.activity-card-summary').dataset.activityIndex);
+                    toggleFavorite(itineraryData[dayIdx].activities[activityIdx], itemType, icon);
+                    event.stopPropagation();
+                });
+            });
+        });
+    </script>
+</body>
+</html>
+�
+<!-- partial -->
+  
+</body>
+</html>
